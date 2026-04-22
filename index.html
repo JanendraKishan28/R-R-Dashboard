@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bachcare Operations Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2A4A;--navy2:#243660;--teal:#007A85;--teal-lt:#E0F4F5;
+  --red:#B83227;--red-lt:#FDEDEB;--green:#1A6E42;--green-lt:#E6F5EE;
+  --gold:#9E6F00;--gold-lt:#FDF4DC;--blue:#2A4A8C;--blue-lt:#EBF0F8;
+  --orange:#C45000;--orange-lt:#FDF0E6;--slate:#5A6B8A;--mist:#F3F5FA;
+  --border:#DDE3EE;--white:#FFFFFF;--text:#1C2833;--soft:#5A6B8A;
+  --r:10px;--sh:0 1px 12px rgba(27,42,74,.07);--sh-lg:0 6px 32px rgba(27,42,74,.13)
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#EAECF3;color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--navy);height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 36px;position:sticky;top:0;z-index:200;box-shadow:0 2px 18px rgba(0,0,0,.22)}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:34px;height:34px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hdr-name{font-family:'DM Serif Display',serif;font-size:19px;color:#fff;letter-spacing:-.2px}
+.hdr-tag{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.6px;font-weight:300}
+.hdr-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.35);text-align:right}
+
+/* TOP TABS */
+.top-nav{background:var(--navy2);display:flex;align-items:center;padding:0 36px;border-bottom:1px solid rgba(255,255,255,.08)}
+.top-tab{padding:13px 22px;font-size:13px;font-weight:600;color:rgba(255,255,255,.5);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;transition:all .15s}
+.top-tab:hover{color:rgba(255,255,255,.8)}
+.top-tab.active{color:#fff;border-bottom-color:var(--teal)}
+
+/* CONTROL BAR */
+.ctrl{background:var(--white);border-bottom:1px solid var(--border);padding:12px 36px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ctrl-label{font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+.month-pills{display:flex;gap:5px;flex-wrap:wrap}
+.mpill{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--slate);cursor:pointer;transition:all .15s}
+.mpill:hover{border-color:var(--teal);color:var(--teal)}
+.mpill.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.bk-wrap{margin-left:auto;display:flex;align-items:center;gap:9px}
+.bk-lbl{font-size:11px;color:var(--slate);font-weight:500}
+.bk-inp{width:95px;padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--navy);text-align:center;outline:none;transition:border-color .15s}
+.bk-inp:focus{border-color:var(--teal)}
+
+/* MAIN */
+.main{padding:24px 36px 56px;max-width:1440px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* DROP ZONE */
+.dz-wrap{border:2px dashed var(--border);border-radius:var(--r);background:var(--white);
+  margin-bottom:24px;transition:border-color .2s,background .2s;padding:18px 20px;
+  display:flex;align-items:center;gap:16px}
+.dz-wrap.drag-over{border-color:var(--teal);background:var(--teal-lt)}
+.dz-wrap.loaded{border-color:var(--green);border-style:solid;background:var(--green-lt)}
+.dz-wrap.err{border-color:var(--red);border-style:solid;background:var(--red-lt)}
+.dz-icon{font-size:28px;flex-shrink:0}
+.dz-text{flex:1;min-width:0}
+.dz-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.dz-wrap.loaded .dz-title{color:var(--green)}
+.dz-wrap.err .dz-title{color:var(--red)}
+.dz-sub{font-size:11px;color:var(--soft)}
+.dz-btn{flex-shrink:0;padding:8px 18px;background:var(--navy);color:#fff;border:none;
+  border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:background .15s;white-space:nowrap}
+.dz-btn:hover{background:var(--teal)}
+.dz-wrap.loaded .dz-btn{background:var(--teal)}
+.dz-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0}
+/* Keep old class names working for any other references */
+.drop-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0}
+
+/* SECTION HEADS */
+.sec{font-family:'DM Serif Display',serif;font-size:16px;color:var(--navy);margin:24px 0 14px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);margin-left:6px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--white);border-radius:var(--r);padding:18px 18px 14px;box-shadow:var(--sh);border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.c-navy::before{background:var(--navy)}.kpi.c-red::before{background:var(--red)}
+.kpi.c-blue::before{background:var(--blue)}.kpi.c-gold::before{background:var(--gold)}
+.kpi.c-teal::before{background:var(--teal)}.kpi.c-green::before{background:var(--green)}
+.kpi.c-orange::before{background:var(--orange)}
+.kpi-lbl{font-size:10.5px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:30px;line-height:1;margin-bottom:3px}
+.kpi.c-red .kpi-val{color:var(--red)}.kpi.c-blue .kpi-val{color:var(--blue)}
+.kpi.c-gold .kpi-val{color:var(--gold)}.kpi.c-teal .kpi-val{color:var(--teal)}
+.kpi.c-green .kpi-val{color:var(--green)}.kpi.c-orange .kpi-val{color:var(--orange)}
+.kpi.c-navy .kpi-val{color:var(--navy)}
+.kpi-sub{font-size:10.5px;color:var(--soft)}
+
+/* LAYOUT */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:20px}
+.full{margin-bottom:20px}
+@media(max-width:900px){.two,.three,.drop-2col{grid-template-columns:1fr}.main,.ctrl,.hdr,.top-nav{padding-left:16px;padding-right:16px}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* PANEL */
+.panel{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);overflow:hidden}
+.ph{padding:14px 18px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:12.5px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px}
+.pb{padding:16px 18px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:7px 9px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--soft);border-bottom:1.5px solid var(--border)}
+.tbl td{padding:8px 9px;border-bottom:1px solid var(--mist);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--mist)}
+.tbl td.n{font-family:'DM Mono',monospace;text-align:right;font-size:11.5px}
+.tbl tfoot td{font-weight:700;border-top:2px solid var(--border);background:var(--mist);padding:9px}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:16px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.pill.red{background:var(--red-lt);color:var(--red)}.pill.green{background:var(--green-lt);color:var(--green)}
+.pill.gold{background:var(--gold-lt);color:var(--gold)}.pill.blue{background:var(--blue-lt);color:var(--blue)}
+.pill.teal{background:var(--teal-lt);color:var(--teal)}.pill.orange{background:var(--orange-lt);color:var(--orange)}
+
+/* BAR ROWS */
+.brow{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.brow:last-child{margin-bottom:0}
+.blbl{font-size:12px;color:var(--text);min-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btrack{flex:1;height:7px;background:var(--mist);border-radius:4px;overflow:hidden}
+.bfill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bfill.navy{background:var(--navy)}.bfill.red{background:var(--red)}.bfill.teal{background:var(--teal)}
+.bfill.gold{background:var(--gold)}.bfill.blue{background:var(--blue)}.bfill.green{background:var(--green)}
+.bfill.orange{background:var(--orange)}
+.bcnt{font-family:'DM Mono',monospace;font-size:11px;color:var(--soft);min-width:28px;text-align:right}
+.bpct{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--soft);min-width:38px;text-align:right}
+
+/* TREND ITEMS */
+.trend-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--mist)}
+.trend-item:last-child{border-bottom:none}
+.trend-rank{font-family:'DM Serif Display',serif;font-size:22px;color:var(--border);min-width:28px;text-align:center}
+.trend-rank.t1{color:var(--red)}.trend-rank.t2{color:var(--orange)}.trend-rank.t3{color:var(--gold)}
+.trend-info{flex:1}
+.trend-name{font-size:13px;font-weight:600;color:var(--navy)}
+.trend-sub{font-size:11px;color:var(--soft);margin-top:2px}
+.trend-count{font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy)}
+
+/* DAMAGE FOCUS CARDS */
+.dmg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.dmg-card{background:var(--mist);border-radius:8px;padding:14px;border-left:3px solid var(--red)}
+.dmg-type{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.dmg-count{font-family:'DM Serif Display',serif;font-size:26px;color:var(--navy)}
+.dmg-val{font-size:11px;color:var(--soft);margin-top:2px}
+.dmg-action{font-size:10.5px;color:var(--soft);margin-top:6px;line-height:1.4;font-style:italic}
+
+/* OUTSTANDING */
+.out-item{padding:10px 0;border-bottom:1px solid var(--mist);display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:start}
+.out-item:last-child{border-bottom:none}
+.out-reason{font-size:12.5px;font-weight:700;color:var(--navy)}
+.out-desc{font-size:10.5px;color:var(--soft);margin-top:2px;line-height:1.4}
+.out-count{font-family:'DM Serif Display',serif;font-size:20px;color:var(--red);text-align:right}
+.out-pct{font-size:10.5px;color:var(--soft);text-align:right}
+
+/* AGE BOXES */
+.age-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.age-box{background:var(--mist);border-radius:8px;padding:14px;text-align:center}
+.age-n{font-family:'DM Serif Display',serif;font-size:34px;color:var(--navy)}
+.age-n.warn{color:var(--red)}
+.age-l{font-size:10px;color:var(--soft);font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+
+/* WRITE-OFF BOX */
+.wb{border-radius:8px;padding:14px;margin-bottom:10px;border-left:4px solid}
+.wb:last-child{margin-bottom:0}
+.wb.red{background:var(--red-lt);border-color:var(--red)}
+.wb.blue{background:var(--blue-lt);border-color:var(--blue)}
+.wb-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.wb-lbl{font-size:12px;font-weight:700}
+.wb.red .wb-lbl{color:var(--red)}.wb.blue .wb-lbl{color:var(--blue)}
+.wb-val{font-family:'DM Serif Display',serif;font-size:22px}
+.wb.red .wb-val{color:var(--red)}.wb.blue .wb-val{color:var(--blue)}
+.wb-desc{font-size:11px;color:var(--soft);line-height:1.5}
+.wb-meta{font-size:10.5px;color:var(--soft);margin-top:5px;font-family:'DM Mono',monospace}
+
+/* COMMENTARY BOX */
+.commentary-box{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);margin-bottom:20px}
+.commentary-header{padding:14px 18px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.commentary-body{padding:16px 18px}
+.commentary-label{font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block}
+.commentary-ta{width:100%;min-height:100px;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;line-height:1.6;transition:border-color .15s;background:var(--mist)}
+.commentary-ta:focus{border-color:var(--teal);background:var(--white)}
+.commentary-ta::placeholder{color:var(--soft);font-style:italic}
+.save-btn{padding:6px 16px;border:none;background:var(--teal);color:#fff;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
+.save-btn:hover{background:var(--navy)}
+.save-ok{font-size:11px;color:var(--green);display:none;align-self:center;margin-left:8px}
+
+/* CANCELLATION SOURCE CARDS */
+.src-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.src-card{background:var(--white);border-radius:var(--r);padding:16px;box-shadow:var(--sh);
+  border:1.5px solid var(--border);text-align:center;cursor:pointer;transition:all .18s;user-select:none}
+.src-card:hover{border-color:var(--teal);box-shadow:var(--sh-lg);transform:translateY(-2px)}
+.src-card.active-filter{border-color:var(--navy);box-shadow:0 0 0 3px rgba(27,42,74,.15)}
+.src-card.filter-bau{border-color:var(--green);background:var(--green-lt)}
+.src-card.filter-oob{border-color:var(--red);background:var(--red-lt)}
+.src-name{font-size:10.5px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.src-total{font-family:'DM Serif Display',serif;font-size:28px;color:var(--navy);margin-bottom:2px}
+.src-bau-btn{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;cursor:pointer;
+  display:inline-block;margin:2px 1px;transition:all .15s;border:1px solid transparent}
+.src-bau-btn.bau-ok{color:var(--green);border-color:var(--green-lt);background:var(--green-lt)}
+.src-bau-btn.bau-ok:hover{background:var(--green);color:#fff}
+.src-bau-btn.bau-oob{color:var(--red);border-color:var(--red-lt);background:var(--red-lt)}
+.src-bau-btn.bau-oob:hover{background:var(--red);color:#fff}
+.src-bau-btn.active{color:#fff!important}
+.src-bau-btn.bau-ok.active{background:var(--green)!important}
+.src-bau-btn.bau-oob.active{background:var(--red)!important}
+.src-rule{font-size:10px;color:var(--soft);font-style:italic;margin-top:6px}
+/* Filter status bar */
+.filter-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--navy);
+  border-radius:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px}
+.filter-tag{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:14px;
+  background:rgba(255,255,255,.15);font-size:11px;color:#fff;font-weight:600}
+.filter-clear{padding:3px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.4);
+  background:transparent;color:#fff;font-size:11px;font-weight:600;cursor:pointer;
+  transition:all .15s;margin-left:auto}
+.filter-clear:hover{background:rgba(255,255,255,.2)}
+
+/* FUNDS ROW */
+.frow{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--mist);gap:9px;font-size:12px}
+.frow:last-child{border-bottom:none}
+.fdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fname{flex:1;color:var(--text)}
+.fcnt{font-family:'DM Mono',monospace;min-width:28px;text-align:right;color:var(--soft);font-size:11.5px}
+.fval{font-family:'DM Mono',monospace;min-width:85px;text-align:right;font-size:11.5px;font-weight:600}
+
+/* INNER TABS */
+.itab-nav{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+.itab-btn{padding:9px 20px;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--soft);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .15s}
+.itab-btn:hover{color:var(--navy)}
+.itab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
+.itab{display:none}.itab.active{display:block}
+
+.empty{display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--soft);font-size:13px;flex-direction:column;gap:10px;text-align:center}
+.fade{animation:fi .28s ease}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(max-width:700px){.src-grid,.dmg-grid{grid-template-columns:1fr 1fr}}
+
+/* REPORT GENERATOR */
+.report-box{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:2px solid var(--teal);margin-bottom:24px;overflow:hidden}
+.report-hdr{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.report-hdr-title{font-family:'DM Serif Display',serif;font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
+.report-hdr-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.report-body{padding:20px}
+.report-output{width:100%;min-height:280px;padding:14px 16px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:'DM Mono',monospace;font-size:12px;color:var(--text);line-height:1.8;
+  resize:vertical;outline:none;background:var(--mist);white-space:pre-wrap}
+.report-output:focus{border-color:var(--teal);background:#fff}
+.report-btns{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.rbtn{padding:8px 18px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.rbtn.primary{background:var(--navy);color:#fff}.rbtn.primary:hover{background:var(--teal)}
+.rbtn.copy{background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal)}.rbtn.copy:hover{background:var(--teal);color:#fff}
+.rbtn.clear{background:var(--mist);color:var(--soft);border:1px solid var(--border)}.rbtn.clear:hover{background:var(--border)}
+.copy-ok{font-size:11px;color:var(--green);display:none;align-self:center;font-weight:600}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">🏡</div>
+    <div>
+      <div class="hdr-name">Bachcare Operations</div>
+      <div class="hdr-tag">Monthly Performance Dashboard</div>
+    </div>
+  </div>
+  <span class="hdr-meta" id="hdr-meta">No data loaded</span>
+</header>
+
+<nav class="top-nav">
+  <button class="top-tab active" onclick="switchPage('gs',this)">👤 Guest Support</button>
+  <button class="top-tab" onclick="switchPage('rr',this)">🏠 Reputations &amp; Resolutions</button>
+</nav>
+
+<div class="ctrl">
+  <span class="ctrl-label">Month</span>
+  <div class="month-pills" id="month-pills">
+    <span style="font-size:12px;color:var(--soft);font-style:italic">Upload a file to see months</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:8px">
+    <span style="font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.5px">Date range:</span>
+    <input type="date" id="dr-from" title="From date" style="padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--navy);outline:none" onchange="applyDateRange()">
+    <span style="font-size:11px;color:var(--soft)">to</span>
+    <input type="date" id="dr-to" title="To date" style="padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--navy);outline:none" onchange="applyDateRange()">
+    <button onclick="clearDateRange()" id="dr-clear" style="display:none;padding:3px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;font-size:11px;color:var(--soft);cursor:pointer" title="Clear date range">✕ Clear</button>
+    <span id="dr-badge" style="display:none" class="pill teal">Date filter active</span>
+  </div>
+  <div class="bk-wrap">
+    <span class="bk-lbl">Monthly bookings:</span>
+    <input class="bk-inp" type="number" id="bk-inp" value="0" min="0">
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- GUEST SUPPORT PAGE                                      -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="page active" id="page-gs">
+<main class="main">
+  <div class="dz-2col">
+    <div class="dz-wrap" id="dz-can" ondragover="dzOver(event,'dz-can')" ondragleave="dzLeave('dz-can')" ondrop="dzDrop(event,'can')">
+      <div class="dz-icon">📋</div>
+      <div class="dz-text">
+        <div class="dz-title" id="dz-can-t">Cancellation Report</div>
+        <div class="dz-sub">Drag &amp; drop here, or click the button →</div>
+      </div>
+      <button class="dz-btn" type="button" onclick="document.getElementById('fi-can').click()">📂 Choose File</button>
+      <input type="file" id="fi-can" accept=".xlsx,.csv,.xls" style="display:none" onchange="fileChosen(this,'can')">
+    </div>
+    <div class="dz-wrap" id="dz-can-rr" ondragover="dzOver(event,'dz-can-rr')" ondragleave="dzLeave('dz-can-rr')" ondrop="dzDrop(event,'can-rr')">
+      <div class="dz-icon">📊</div>
+      <div class="dz-text">
+        <div class="dz-title" id="dz-can-rr-t">R&amp;R Tracker (optional)</div>
+        <div class="dz-sub">Drag &amp; drop here, or click the button →</div>
+      </div>
+      <button class="dz-btn" type="button" onclick="document.getElementById('fi-can-rr').click()">📂 Choose File</button>
+      <input type="file" id="fi-can-rr" accept=".xlsx,.xls" style="display:none" onchange="fileChosen(this,'can-rr')">
+    </div>
+  </div>
+  <div id="gs-content"><div class="empty"><div>📋</div><div>Upload your Cancellation Report above to view this dashboard</div></div></div>
+</main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- R&R PAGE                                               -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="page" id="page-rr">
+<main class="main">
+  <div class="dz-wrap" id="dz-rr" ondragover="dzOver(event,'dz-rr')" ondragleave="dzLeave('dz-rr')" ondrop="dzDrop(event,'rr')">
+    <div class="dz-icon">📊</div>
+    <div class="dz-text">
+      <div class="dz-title" id="dz-rr-t">R&amp;R Tracker</div>
+      <div class="dz-sub">Drag &amp; drop your tracker here, or click the button to browse — data loads instantly</div>
+    </div>
+    <button class="dz-btn" type="button" onclick="document.getElementById('fi-rr').click()">📂 Choose File</button>
+    <input type="file" id="fi-rr" accept=".xlsx,.xls" style="display:none" onchange="fileChosen(this,'rr')">
+  </div>
+
+  <div class="report-box">
+    <div class="report-hdr">
+      <div>
+        <div class="report-hdr-title">📋 4DX Report Generator</div>
+        <div class="report-hdr-sub">Auto-fills answers to all leadership questions · Copy directly into your report</div>
+      </div>
+    </div>
+    <div class="report-body">
+      <textarea class="report-output" id="report-out" placeholder="Click Generate Report to auto-fill your 4DX answers…" readonly></textarea>
+      <div class="report-btns">
+        <button class="rbtn primary" onclick="generateReport()">⚡ Generate Report</button>
+        <button class="rbtn copy" onclick="copyReport()">📋 Copy to Clipboard</button>
+        <button class="rbtn clear" onclick="document.getElementById('report-out').value=''">✕ Clear</button>
+        <span class="copy-ok" id="copy-ok">✅ Copied!</span>
+        <span style="font-size:11px;color:var(--soft);align-self:center;margin-left:4px">Upload tracker first, then select a month above</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="itab-nav">
+    <button class="itab-btn active" onclick="switchItab('overview',this)">📊 Overview</button>
+    <button class="itab-btn" onclick="switchItab('claims',this)">📋 Claims</button>
+    <button class="itab-btn" onclick="switchItab('feedback',this)">💬 Feedback</button>
+    <button class="itab-btn" onclick="switchItab('financial',this)">💰 Financial</button>
+  </div>
+  <div id="rr-content"><div class="empty"><div>📊</div><div>Upload the R&amp;R Tracker above — data appears immediately</div></div></div>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let rrData   = null;  // { months:{}, month_list:[] }
+let canData  = null;
+let curMonth = null;
+let bk       = 0;
+let curItab  = 'overview';
+
+// ── FORMATTERS ─────────────────────────────────────────────────────────────
+const f$  = v => (!v&&v!==0)||v===0 ? '—' : '$'+v.toLocaleString('en-NZ',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fN  = v => v===0||v===null||v===undefined ? '—' : Number(v).toLocaleString();
+const fP  = (n,d) => !d ? '—' : (n/d*100).toFixed(1)+'%';
+const tfl = n => n>20?'<span class="pill red">🔴 Concern</span>':n>10?'<span class="pill gold">🟡 Watch</span>':'<span class="pill green">🟢 OK</span>';
+
+// ── PAGE / TAB SWITCHING ───────────────────────────────────────────────────
+function switchPage(id,btn){
+  document.querySelectorAll('.top-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+  renderAll();
+}
+function switchItab(id,btn){
+  curItab=id;
+  document.querySelectorAll('.itab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.itab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const el=document.getElementById('itab-'+id);
+  if(el) el.classList.add('active');
+}
+
+// ── DROP ZONES ─────────────────────────────────────────────────────────────
+function dzOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag-over')}
+function dzLeave(id){document.getElementById(id).classList.remove('drag-over')}
+function dzDrop(e,type){
+  e.preventDefault();e.stopPropagation();
+  const map={'can':'dz-can','can-rr':'dz-can-rr','rr':'dz-rr'};
+  dzLeave(map[type]);
+  const file=e.dataTransfer.files[0];
+  if(file) processFile(file,type);
+}
+function fileChosen(inp,type){
+  if(inp.files[0]){
+    processFile(inp.files[0],type);
+    inp.value=''; // reset so same file can be dropped/chosen again
+  }
+}
+
+// ── FILE PROCESSING ────────────────────────────────────────────────────────
+function setDzStatus(dzId, state, msg){
+  // state: 'loading' | 'loaded' | 'err'
+  const dz=document.getElementById(dzId);
+  if(!dz)return;
+  dz.classList.remove('loaded','err','drag-over');
+  dz.style.borderColor='';
+  if(state==='loading') dz.style.borderColor='var(--gold)';
+  if(state==='loaded')  dz.classList.add('loaded');
+  if(state==='err')     dz.classList.add('err');
+  // Update title text — child with id ending in -t
+  const titleId=dzId+'-t';
+  const t=document.getElementById(titleId);
+  if(t&&msg) t.textContent=msg;
+  // Update button text
+  const btn=dz.querySelector('.dz-btn');
+  if(btn){
+    if(state==='loading') btn.textContent='⏳ Reading…';
+    else if(state==='loaded') btn.textContent='📂 Replace';
+    else btn.textContent='📂 Choose File';
+  }
+}
+// Keep old name for compatibility
+function setDzLoading(dzId,filename){ setDzStatus(dzId,'loading','⏳ Reading '+filename+'…'); }
+
+function processFile(file, type){
+  if(!file){ console.warn('processFile called with no file'); return; }
+  const dzId=type==='can'?'dz-can':type==='can-rr'?'dz-can-rr':'dz-rr';
+  setDzLoading(dzId, file.name);
+
+  // Check XLSX library loaded
+  if(typeof XLSX==='undefined'){
+    alert('The XLSX library has not loaded yet. Please wait a moment and try again.');
+    return;
+  }
+
+  const reader=new FileReader();
+  reader.onerror=()=>{
+    setDzStatus(dzId,'err','❌ Could not read file — try again');
+  };
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});
+      const sheetName=wb.SheetNames[0];
+      const rrSheet=wb.SheetNames.find(n=>n.includes('R&R')||n.includes('FY26'))||sheetName;
+
+      if(type==='rr'||type==='can-rr'){
+        processRR(wb.Sheets[rrSheet],file.name,type);
+      } else {
+        const ws=wb.Sheets[sheetName];
+        const raw2d=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        const KNOWN=['booking pbn','booking source','cancelled date','holiday start date','cancelled by'];
+        let hdr=0;
+        for(let i=0;i<Math.min(raw2d.length,10);i++){
+          const s=raw2d[i].join('|').toLowerCase();
+          if(KNOWN.filter(c=>s.includes(c)).length>=3){hdr=i;break;}
+        }
+        const headers=raw2d[hdr].map(h=>String(h).trim());
+        const rows=[];
+        for(let i=hdr+1;i<raw2d.length;i++){
+          const r=raw2d[i];
+          if(r.every(c=>c===''||c===null||c===undefined))continue;
+          const obj={};
+          headers.forEach((h,j)=>{obj[h]=r[j]!==undefined?r[j]:''});
+          rows.push(obj);
+        }
+        processCancellation(rows,headers,file.name);
+      }
+    }catch(err){
+      setDzStatus(dzId,'err','❌ '+err.message);
+      console.error('processFile error:',err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── R&R EXCEL PROCESSING ───────────────────────────────────────────────────
+// Column indices (0-based) from header row 13 (index 12):
+// 0=Case#, 3=CaseType, 4=KeyAccount, 5=TotalDays, 7=FYWeek, 10=CreationDate,
+// 18=PrimaryCaseType, 23=Priority, 24=FeedbackStatus, 25=ClaimsStatus,
+// 26=CaseValue, 27=FundsStatus, 30=ResolvedSatisfactorily, 31=WorkingDays
+const RR_HEADER_ROW = 12; // 0-based = row 13
+const RR_DATA_START = 13; // 0-based = row 14
+
+function xlSerial(val){
+  if(typeof val==='number'&&val>40000&&val<70000)
+    return new Date(Date.UTC(1899,11,30)+val*86400000);
+  if(val instanceof Date&&!isNaN(val)) return val;
+  if(typeof val==='string'&&val.trim()){
+    const p=val.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if(p) return new Date(+p[3],+p[2]-1,+p[1]);
+    const d=new Date(val);
+    return isNaN(d)?null:d;
+  }
+  return null;
+}
+
+function processRR(ws, filename, type){
+  const raw2d=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  const months={};
+
+  for(let i=RR_DATA_START;i<raw2d.length;i++){
+    const r=raw2d[i];
+    const caseNum=r[0];
+    // Skip blank rows and template rows
+    if(!caseNum||String(caseNum).trim()==='Enter Case#'||String(caseNum).trim()==='')continue;
+    if(!String(caseNum).match(/^\d+/))continue;
+
+    const caseType   = String(r[3]||'').trim();
+    const keyAccount = String(r[4]||'').trim().toLowerCase()==='yes';
+    const totalDays  = parseFloat(r[5])||0;
+    const creationRaw= r[10];
+    const cd         = xlSerial(creationRaw);
+    if(!cd) continue;
+
+    const mk  = `${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}`;
+    const lbl = cd.toLocaleDateString('en-NZ',{month:'long',year:'numeric'});
+    const primaryType= String(r[18]||'').trim();
+    const caseValue  = parseFloat(String(r[26]||'').replace(/[\$~]/g,''))||0;
+    const fundsStatus= String(r[27]||'').trim();
+    const resolved   = String(r[30]||'').trim();
+    const workDays   = parseFloat(r[31])||0;
+    const priority   = String(r[23]||'').trim();
+    const claimStatus= String(r[25]||'').trim();
+
+    const ctLower=caseType.toLowerCase();
+    const isClaim   = ctLower==='claim';
+    const isFeedback= ctLower==='feedback'||ctLower==='reviews';
+
+    if(!months[mk]) months[mk]={
+      label:lbl, total:0, claims:0, feedback:0,
+      resolved_yes:0, open_claims:0, open_days:[],
+      key_account:0, high_priority:0,
+      funds:{}, claims_funds:{gel:0,gel_val:0,written_off:0,wo_val:0,owner:0,own_val:0,recovered:0,rec_val:0},
+      feedback_funds:{gel:0,gel_val:0,owner:0,own_val:0,split:0,spl_val:0,no_cost:0},
+      primary_types:{}, damage_types:{}, claim_types:{}, fb_types:{},
+      outstanding_reasons:{}
+    };
+    const m=months[mk];
+    m.total++;
+    if(isClaim) m.claims++;
+    if(isFeedback) m.feedback++;
+    if(resolved==='Yes') m.resolved_yes++;
+    if(keyAccount) m.key_account++;
+    if(priority==='High') m.high_priority++;
+
+    // Funds status
+    m.funds[fundsStatus]=(m.funds[fundsStatus]||0)+1;
+
+    // Claims funds detail
+    if(isClaim){
+      if(fundsStatus==='GEL Funded'){m.claims_funds.gel++;m.claims_funds.gel_val+=caseValue;}
+      if(fundsStatus==='FUNDS NOT RECOVERED'){m.claims_funds.written_off++;m.claims_funds.wo_val+=caseValue;}
+      if(fundsStatus==='Owner Funded'){m.claims_funds.owner++;m.claims_funds.own_val+=caseValue;}
+      if(fundsStatus==='Guest Payment Received'){m.claims_funds.recovered++;m.claims_funds.rec_val+=caseValue;}
+      if(resolved==='Pending'){
+        m.open_claims++;
+        if(totalDays>0) m.open_days.push(totalDays);
+        if(claimStatus) m.outstanding_reasons[claimStatus]=(m.outstanding_reasons[claimStatus]||0)+1;
+      }
+      if(primaryType) m.damage_types[primaryType]=(m.damage_types[primaryType]||0)+1;
+    }
+
+    // Feedback funds detail
+    if(isFeedback){
+      if(fundsStatus==='GEL Funded'){m.feedback_funds.gel++;m.feedback_funds.gel_val+=caseValue;}
+      if(fundsStatus==='Owner Funded'){m.feedback_funds.owner++;m.feedback_funds.own_val+=caseValue;}
+      if(fundsStatus==='Split - Advise in notes'){m.feedback_funds.split++;m.feedback_funds.spl_val+=caseValue;}
+      if(fundsStatus==='No Funds Required') m.feedback_funds.no_cost++;
+    }
+
+    // ── Categorise primary type ──────────────────────────────────────────
+    // Claims: only 3 categories
+    const CLAIM_CATS={
+      'Claim -Additional Cleaning':'Additional Cleaning',
+      'Claim -Missing Items':'Missing Items',
+      'Claim -Damages':'Damages',
+      'Additional Cleaning':'Additional Cleaning',
+    };
+    // Feedback: 8 categories — map raw tracker values
+    const FB_CATS={
+      'Clean*-MSP':'Cleaning','Cleanl*-D-Clean':'Cleaning','Clean* & Maint*':'Cleaning',
+      'Cle anl*-D-Clean':'Cleaning','Cleanliness - MSP':'Cleaning','Cleanliness -MSP Preparing':'Cleaning',
+      'Cleanliness -Deepclean':'Cleaning','Cleanliness & Maintenance':'Cleaning',
+      'Maint*':'Maintenance','Maintenance':'Maintenance',
+      'Amenities':'Amenities',
+      'Access':'Access',
+      'Clean*-MSP Preparing':'Pre-stay Issue','Cleanl*-D-Clean':'Pre-stay Issue',
+      'H&S Issue':'H&S Issue',
+      'Listing Errors':'Listing Error','Listing Error':'Listing Error',
+      'Communication':'Communication',
+    };
+    if(isClaim){
+      const cat=CLAIM_CATS[primaryType]||null;
+      if(cat) m.claim_types[cat]=(m.claim_types[cat]||0)+1;
+    }
+    if(isFeedback){
+      // Map to one of the 8 FB categories
+      let fbCat=FB_CATS[primaryType]||null;
+      if(!fbCat){
+        const pt=primaryType.toLowerCase();
+        if(pt.includes('clean')||pt.includes('msp'))fbCat='Cleaning';
+        else if(pt.includes('maint'))fbCat='Maintenance';
+        else if(pt.includes('amenit'))fbCat='Amenities';
+        else if(pt.includes('access'))fbCat='Access';
+        else if(pt.includes('h&s')||pt.includes('health'))fbCat='H&S Issue';
+        else if(pt.includes('list'))fbCat='Listing Error';
+        else if(pt.includes('commun'))fbCat='Communication';
+        else if(pt.includes('pre')||pt.includes('prestay')||pt.includes('pre-stay'))fbCat='Pre-stay Issue';
+      }
+      if(fbCat) m.fb_types[fbCat]=(m.fb_types[fbCat]||0)+1;
+    }
+    // Also keep top 5 trending across all (for overview)
+    if(primaryType) m.primary_types[primaryType]=(m.primary_types[primaryType]||0)+1;
+  }
+
+  // Compute averages
+  Object.values(months).forEach(m=>{
+    m.avg_days = m.open_days.length>0 ? Math.round(m.open_days.reduce((a,b)=>a+b,0)/m.open_days.length*10)/10 : 0;
+    m.oldest   = m.open_days.length>0 ? Math.max(...m.open_days) : 0;
+    // Top 5 trending issues (all case types combined)
+    m.top5_issues = Object.entries(m.primary_types)
+      .filter(([k])=>k&&k!=='nan')
+      .sort((a,b)=>b[1]-a[1]).slice(0,5);
+    // Claim types (3 fixed categories)
+    m.top3_damages = Object.entries(m.claim_types).sort((a,b)=>b[1]-a[1]);
+    // Feedback issue types (8 fixed categories)
+    const FB_ORDER=['Cleaning','Maintenance','Amenities','Access','Pre-stay Issue','Communication','Listing Error','H&S Issue'];
+    m.all_issues = FB_ORDER.map(k=>[k,m.fb_types[k]||0]).filter(([,v])=>v>0);
+    delete m.open_days;
+  });
+
+  rrData={
+    generated:new Date().toISOString(),
+    months,
+    month_list:Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>({key:k,label:v.label}))
+  };
+
+  // Update UI
+  const dzId=type==='can-rr'?'dz-can-rr':'dz-rr';
+  setDzStatus(dzId,'loaded',`✅ ${filename} — ${rrData.month_list.length} months`);
+
+  document.getElementById('hdr-meta').textContent=
+    `R&R: ${filename} · ${new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'short',year:'numeric'})}`;
+
+  buildPills();
+  if(!curMonth&&rrData.month_list.length>0)
+    selectMonth(rrData.month_list.slice(-1)[0].key);
+  else renderAll();
+}
+
+// ── CANCELLATION PROCESSING ────────────────────────────────────────────────
+function xlDate(val){
+  if(typeof val==='number'&&val>40000&&val<70000)
+    return new Date(Date.UTC(1899,11,30)+val*86400000);
+  if(val instanceof Date&&!isNaN(val))return val;
+  if(typeof val==='string'&&val.trim()){
+    const p=val.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if(p)return new Date(+p[3],+p[2]-1,+p[1]);
+    const d=new Date(val);return isNaN(d)?null:d;
+  }
+  return null;
+}
+// bauThresh now part of srcGroup block above
+function srcGroup(src){
+  const s=(src||'').toLowerCase().trim();
+  if(s.includes('vrbo')||s.includes('homeaway')||s.includes('holiday houses'))return'VRBO';
+  if(s.includes('booking.com'))return'Booking.com';
+  if(s.includes('airbnb'))return'Airbnb';
+  return'Bachcare'; // everything else is a Bachcare booking
+}
+function srcLabel(grp){return grp;} // no _OTHER prefix needed anymore
+function bauThresh(src){
+  const g=srcGroup(src);
+  if(g==='Booking.com')return 7;
+  if(g==='VRBO')return 14;
+  return 30; // Airbnb & Bachcare
+}
+
+function processCancellation(rows,headers,filename){
+  const fc=(...cands)=>{
+    for(const c of cands){const e=headers.find(h=>h.toLowerCase()===c.toLowerCase());if(e)return e;}
+    for(const c of cands){const p=headers.find(h=>h.toLowerCase().includes(c.toLowerCase()));if(p)return p;}
+    return null;
+  };
+  const C={
+    src:  fc('Booking Source'),
+    by:   fc('Cancelled By'),
+    type: fc('Booking Type'),
+    cdate:fc('Cancelled Date'),
+    cin:  fc('Holiday Start Date'),
+    rsn:  fc('Cancellation Reason'),
+    pbn:  fc('Booking PBN'),
+    ref:  fc('Booking Reference'),
+  };
+
+  const parsed=rows.map(r=>{
+    const src  =String(r[C.src]||'').trim();
+    const byRaw=String(r[C.by]||r[C.type]||'').trim().toLowerCase();
+    const by   =byRaw.includes('owner')?'Owner':byRaw.includes('office')?'Office':'Customer';
+    const cd   =xlDate(r[C.cdate]);
+    const ci   =xlDate(r[C.cin]);
+    if(!cd)return null;
+    const thresh=bauThresh(src);
+    const days  =ci?Math.round((ci-cd)/86400000):null;
+    const isOOB =days!==null&&days>=0&&days<thresh;
+    const mk    =`${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}`;
+    const lbl   =cd.toLocaleDateString('en-NZ',{month:'long',year:'numeric'});
+    return{pbn:String(r[C.pbn]||r[C.ref]||''),src,by,cd,ci,days,isOOB,thresh,grp:srcGroup(src),mk,lbl,reason:String(r[C.rsn]||'').trim()};
+  }).filter(Boolean);
+
+  const months={};
+  parsed.forEach(r=>{
+    if(!months[r.mk])months[r.mk]={label:r.lbl,rows:[]};
+    months[r.mk].rows.push(r);
+  });
+
+  canData={
+    filename,
+    months,
+    month_list:Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>({key:k,label:v.label}))
+  };
+
+  if(parsed.length===0){
+    setDzStatus('dz-can','err',`⚠️ 0 rows parsed — Headers seen: ${headers.slice(0,5).join(', ')}`);
+    console.error('[CAN] parse failure',{headers,C,row0:rows[0]});
+    return;
+  }
+  setDzStatus('dz-can','loaded',`✅ ${filename} — ${parsed.length} rows`);
+
+  buildPills();
+  if(!curMonth&&canData.month_list.length>0)
+    selectMonth(canData.month_list.slice(-1)[0].key);
+  else renderAll();
+}
+
+// ── MONTH PILLS ────────────────────────────────────────────────────────────
+function buildPills(){
+  const seen={},list=[];
+  [rrData?.month_list,canData?.month_list].forEach(src=>{
+    if(src)src.forEach(m=>{if(!seen[m.key]){seen[m.key]=1;list.push(m);}});
+  });
+  list.sort((a,b)=>a.key.localeCompare(b.key));
+  const wrap=document.getElementById('month-pills');
+  wrap.innerHTML='';
+  list.forEach(m=>{
+    const b=document.createElement('button');
+    b.className='mpill'+(m.key===curMonth?' active':'');
+    b.textContent=m.label;b.dataset.key=m.key;
+    b.onclick=()=>selectMonth(m.key);
+    wrap.appendChild(b);
+  });
+}
+function selectMonth(key){
+  curMonth=key;
+  document.querySelectorAll('.mpill').forEach(b=>b.classList.toggle('active',b.dataset.key===key));
+  bk=parseInt(document.getElementById('bk-inp').value)||0;
+  renderAll();
+}
+document.getElementById('bk-inp').addEventListener('input',()=>{
+  bk=parseInt(document.getElementById('bk-inp').value)||0;renderAll();
+});
+
+// ── DATE RANGE FILTER ─────────────────────────────────────────────────────
+let dateFrom=null, dateTo=null;
+
+function applyDateRange(){
+  const f=document.getElementById('dr-from').value;
+  const t=document.getElementById('dr-to').value;
+  dateFrom=f?new Date(f):null;
+  dateTo  =t?new Date(t+'T23:59:59'):null;
+  const active=dateFrom||dateTo;
+  document.getElementById('dr-clear').style.display=active?'':'none';
+  document.getElementById('dr-badge').style.display=active?'':'none';
+  // Rebuild pills from filtered data then re-render
+  buildPills();
+  renderAll();
+}
+function clearDateRange(){
+  dateFrom=null;dateTo=null;
+  document.getElementById('dr-from').value='';
+  document.getElementById('dr-to').value='';
+  document.getElementById('dr-clear').style.display='none';
+  document.getElementById('dr-badge').style.display='none';
+  buildPills();renderAll();
+}
+
+// Filter a row set by date range (uses .cd for cancellations, cd passed as param for RR)
+function inDateRange(d){
+  if(!d)return false;
+  if(dateFrom&&d<dateFrom)return false;
+  if(dateTo  &&d>dateTo)  return false;
+  return true;
+}
+
+// ── REPORT GENERATOR ───────────────────────────────────────────────────────
+function generateReport(){
+  if(!rrData||!curMonth){
+    document.getElementById('report-out').value='⚠️ Upload the R&R Tracker and select a month first.';
+    return;
+  }
+  const d=rrData.months[curMonth];
+  if(!d){document.getElementById('report-out').value='No data for this month.';return;}
+  bk=parseInt(document.getElementById('bk-inp').value)||0;
+
+  const pct=(n,den)=>den>0?(n/den*100).toFixed(1)+'%':'N/A (enter booking volume)';
+  const money=v=>v>0?'$'+v.toLocaleString('en-NZ',{minimumFractionDigits:2,maximumFractionDigits:2}):'$0.00';
+
+  // Outstanding reasons summary
+  const reasons=d.outstanding_reasons||{};
+  const totOut=Object.values(reasons).reduce((a,b)=>a+b,0);
+  const reasonLines=Object.entries(reasons).sort((a,b)=>b[1]-a[1])
+    .map(([s,c])=>`      • ${s}: ${c} case${c>1?'s':''}`)
+    .join('
+')||'      • No outstanding cases';
+
+  // Damage types
+  const dmgLines=(d.top3_damages||[]).map(([k,v])=>`      • ${k}: ${v} case${v>1?'s':''}`)
+    .join('
+')||'      • No damage type data';
+
+  // Feedback issue types
+  const fbLines=(d.all_issues||[]).map(([k,v])=>{
+    const flag=v>20?'🔴 CONCERN':v>10?'🟡 Watch':'🟢 OK';
+    return`      • ${k}: ${v} case${v>1?'s':''} ${flag}`;
+  }).join('
+')||'      • No categorised feedback';
+
+  // Resolved via GEL
+  const resolvedGEL=d.claims_funds.gel||0;
+  const pctResolvedGEL=d.resolved_yes>0?pct(resolvedGEL,d.resolved_yes):'N/A';
+
+  const report=`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPUTATIONS & RESOLUTIONS — 4DX REPORT
+Period: ${d.label}${dateFrom||dateTo?' (date-filtered)':''}
+Generated: ${new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'})}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CLAIMS
+──────────────────────────────────────────────────
+1. % of bookings with claims
+   ${d.claims} claims from ${bk>0?bk+' bookings':'{enter booking volume}'} = ${pct(d.claims,bk)}
+
+2. % of claims resolved and paid from GEL
+   Of ${d.resolved_yes} resolved claims, ${resolvedGEL} were funded by GEL = ${pctResolvedGEL}
+
+3. Outstanding claims this period and why they are open
+   Total outstanding: ${d.open_claims} claims still pending
+${reasonLines}
+
+4. Average age and oldest age of open claims
+   Average age: ${d.avg_days} days | Oldest open claim: ${d.oldest} days
+
+5. How much did we write off and what for
+   Funds Not Recovered (write-off): ${money(d.claims_funds.wo_val)} across ${d.claims_funds.written_off} case${d.claims_funds.written_off!==1?'s':''}
+
+6. How much did owners not get paid (owner had to absorb)
+   Owner Funded (owner paid directly): ${money(d.claims_funds.own_val)} across ${d.claims_funds.owner} case${d.claims_funds.owner!==1?'s':''}
+
+7. Damage types that need MSP focus
+${dmgLines}
+
+FEEDBACK
+──────────────────────────────────────────────────
+8. % of bookings with feedback
+   ${d.feedback} feedback cases from ${bk>0?bk+' bookings':'{enter booking volume}'} = ${pct(d.feedback,bk)}
+
+9. % of feedback funding (GEL / Owner / Split)
+   GEL funded: ${d.feedback_funds.gel} cases = ${pct(d.feedback_funds.gel,d.feedback)} (${money(d.feedback_funds.gel_val)})
+   Owner paid: ${d.feedback_funds.owner} cases = ${pct(d.feedback_funds.owner,d.feedback)} (${money(d.feedback_funds.own_val)})
+   Split cost: ${d.feedback_funds.split} cases = ${pct(d.feedback_funds.split,d.feedback)} (${money(d.feedback_funds.spl_val)})
+   No cost:    ${d.feedback_funds.no_cost} cases = ${pct(d.feedback_funds.no_cost,d.feedback)}
+
+10. Issues raised and concerning trends
+${fbLines}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINANCIAL SUMMARY
+   Total GEL spend (claims + feedback): ${money(d.claims_funds.gel_val+d.feedback_funds.gel_val)}
+   Total recovered from guests: ${money(d.claims_funds.rec_val)}
+   Net GEL exposure: ${money(Math.max(0,d.claims_funds.gel_val+d.feedback_funds.gel_val-d.claims_funds.rec_val))}
+   Total cases: ${d.total} | Resolution rate: ${pct(d.resolved_yes,d.total)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+  document.getElementById('report-out').value=report;
+  document.getElementById('report-out').removeAttribute('readonly');
+}
+
+function copyReport(){
+  const ta=document.getElementById('report-out');
+  if(!ta.value||ta.value.startsWith('⚠️'))return;
+  navigator.clipboard.writeText(ta.value).then(()=>{
+    const ok=document.getElementById('copy-ok');
+    ok.style.display='inline';
+    setTimeout(()=>ok.style.display='none',2200);
+  }).catch(()=>{
+    ta.select();document.execCommand('copy');
+    const ok=document.getElementById('copy-ok');
+    ok.style.display='inline';
+    setTimeout(()=>ok.style.display='none',2200);
+  });
+}
+
+// ── MASTER RENDER ──────────────────────────────────────────────────────────
+function renderAll(){renderGS();renderRR();}
+
+// ══════════════════════════════════════════════════════════════════════════
+// GUEST SUPPORT RENDER — with clickable channel filter cards
+// ══════════════════════════════════════════════════════════════════════════
+
+// Active filter state: {channel: 'Booking.com'|null, mode: 'bau'|'oob'|null}
+let canFilter = {channel: null, mode: null};
+
+function setCanFilter(channel, mode){
+  // Toggle off if same filter clicked twice
+  if(canFilter.channel===channel && canFilter.mode===mode){
+    canFilter={channel:null,mode:null};
+  } else {
+    canFilter={channel,mode};
+  }
+  renderGS();
+}
+
+function renderGS(){
+  const el=document.getElementById('gs-content');
+  if(!canData||!curMonth)return;
+  const md=canData.months[curMonth];
+  if(!md||!md.rows){el.innerHTML=`<div class="empty">No cancellation data for this month.</div>`;return;}
+  // Apply date range filter if active
+  const rows=(dateFrom||dateTo)?md.rows.filter(r=>inDateRange(r.cd)):md.rows;
+  const total=rows.length;
+  const customer=rows.filter(r=>r.by==='Customer').length;
+  const owner   =rows.filter(r=>r.by==='Owner').length;
+  const office  =rows.filter(r=>r.by==='Office').length;
+  const oob     =rows.filter(r=>r.isOOB).length;
+  const bau     =total-oob;
+
+  // Build channel groups — detect all unique groups in data
+  const allGroups=new Set(rows.map(r=>r.grp));
+  // Known channels first, then any unknown ones
+  const KNOWN=['Booking.com','Airbnb','HomeAway / VRBO','Bachcare'];
+  const unknowns=[...allGroups].filter(g=>!KNOWN.includes(g)&&g!=='_OTHER:');
+  const SRCS=[...KNOWN,...unknowns];
+
+  const srcStats={};
+  SRCS.forEach(s=>{
+    const sub=rows.filter(r=>r.grp===s);
+    if(!sub.length)return;
+    const tw=s==='Booking.com'?7:s==='HomeAway / VRBO'?14:30;
+    srcStats[s]={total:sub.length,oob:sub.filter(r=>r.isOOB).length,bau:sub.filter(r=>!r.isOOB).length,thresh:tw};
+  });
+
+  // Source cards with clickable BAU / OOB buttons
+  const srcCards=SRCS.map(s=>{
+    const st=srcStats[s];if(!st)return'';
+    const isFiltCh=canFilter.channel===s;
+    const isFiltBAU=isFiltCh&&canFilter.mode==='bau';
+    const isFiltOOB=isFiltCh&&canFilter.mode==='oob';
+    const displayName=srcLabel(s);
+    return`<div class="src-card ${isFiltCh?'active-filter':''}">
+      <div class="src-name">${displayName}</div>
+      <div class="src-total">${st.total}</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
+        <span class="src-bau-btn bau-ok ${isFiltBAU?'active':''}" 
+          onclick="setCanFilter('${s}','bau')" title="Show BAU cancellations for ${displayName}">
+          ✅ BAU: ${st.bau}
+        </span>
+        <span class="src-bau-btn bau-oob ${isFiltOOB?'active':''}"
+          onclick="setCanFilter('${s}','oob')" title="Show outside-BAU cancellations for ${displayName}">
+          ⚠️ OOB: ${st.oob}
+        </span>
+      </div>
+      <div class="src-rule">Window: &lt;${st.thresh} days to check-in</div>
+    </div>`;
+  }).join('');
+
+  // Apply filter to table rows
+  let filteredRows=rows;
+  let filterDesc='All cancellations';
+  if(canFilter.channel){
+    filteredRows=rows.filter(r=>r.grp===canFilter.channel);
+    if(canFilter.mode==='bau'){
+      filteredRows=filteredRows.filter(r=>!r.isOOB);
+      filterDesc=`${srcLabel(canFilter.channel)} — Within BAU (≥${srcStats[canFilter.channel]?.thresh} days notice)`;
+    } else if(canFilter.mode==='oob'){
+      filteredRows=filteredRows.filter(r=>r.isOOB);
+      filterDesc=`${srcLabel(canFilter.channel)} — Outside BAU (<${srcStats[canFilter.channel]?.thresh} days notice)`;
+    } else {
+      filterDesc=`${srcLabel(canFilter.channel)} — All cancellations`;
+    }
+  }
+
+  // Filter bar (only shown when a filter is active)
+  const filterBar=canFilter.channel?`
+    <div class="filter-bar">
+      <span class="filter-bar-label">Filtered:</span>
+      <span class="filter-tag">${canFilter.mode==='bau'?'✅':'⚠️'} ${filterDesc}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.6)">${filteredRows.length} of ${total} cancellations</span>
+      <button class="filter-clear" onclick="canFilter={channel:null,mode:null};renderGS()">✕ Clear filter</button>
+    </div>`:'';
+
+  // Filtered table — sorted by days to check-in (urgent first for OOB, latest first for BAU)
+  const sortedRows=[...filteredRows].sort((a,b)=>{
+    if(canFilter.mode==='oob') return (a.days||999)-(b.days||999);
+    return (b.days||0)-(a.days||0);
+  });
+
+  const tableRows=sortedRows.map(r=>`<tr>
+    <td style="font-size:11px;font-family:'DM Mono',monospace;white-space:nowrap">${r.pbn||'—'}</td>
+    <td style="white-space:nowrap">${srcLabel(r.grp)}</td>
+    <td><span class="pill ${r.by==='Customer'?'blue':r.by==='Owner'?'orange':'teal'}">${r.by}</span></td>
+    <td class="n" style="${r.isOOB?'color:var(--red);font-weight:700':'color:var(--green)'}">
+      ${r.days!==null?r.days+'d':'—'}
+    </td>
+    <td style="font-size:11px">
+      ${r.isOOB?`<span class="pill red">Outside BAU</span>`:`<span class="pill green">Within BAU</span>`}
+    </td>
+    <td style="font-size:11px;color:var(--soft)">&lt;${r.thresh}d window</td>
+    <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.reason}">${r.reason||'—'}</td>
+  </tr>`).join('');
+
+  const tableEmpty=`<tr><td colspan="7" style="text-align:center;color:var(--soft);padding:18px">
+    ${canFilter.mode==='oob'?'No outside-BAU cancellations for this channel 🎉':'No cancellations match this filter.'}
+  </td></tr>`;
+
+  // Reason bars (on full dataset, not filtered)
+  const reasons={};rows.forEach(r=>{const k=r.reason||'Not specified';reasons[k]=(reasons[k]||0)+1;});
+  const topR=Object.entries(reasons).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxR=topR[0]?.[1]||1;
+  const reasonBars=topR.map(([r,c],i)=>`<div class="brow">
+    <div class="blbl" title="${r}">${r||'Not specified'}</div>
+    <div class="btrack"><div class="bfill ${['navy','red','teal','gold','blue','green','orange','navy'][i]}" style="width:${c/maxR*100}%"></div></div>
+    <div class="bcnt">${c}</div>
+    <div class="bpct">${fP(c,total)}</div>
+  </div>`).join('');
+
+  const savedSum=localStorage.getItem('can-summary-'+curMonth)||'';
+
+  el.innerHTML=`<div class="fade">
+    <div class="sec">📊 Cancellation Overview — ${md.label}</div>
+    <div class="kpi-grid">
+      <div class="kpi c-navy"><div class="kpi-lbl">Total Cancellations</div><div class="kpi-val">${fN(total)}</div><div class="kpi-sub">${bk>0?fP(total,bk)+' of bookings':''}</div></div>
+      <div class="kpi c-blue"><div class="kpi-lbl">Customer</div><div class="kpi-val">${fN(customer)}</div><div class="kpi-sub">${fP(customer,total)} of cancellations</div></div>
+      <div class="kpi c-orange"><div class="kpi-lbl">Owner</div><div class="kpi-val">${fN(owner)}</div><div class="kpi-sub">${fP(owner,total)}</div></div>
+      <div class="kpi c-teal"><div class="kpi-lbl">Office</div><div class="kpi-val">${fN(office)}</div><div class="kpi-sub">${fP(office,total)}</div></div>
+      <div class="kpi c-green"><div class="kpi-lbl">Within BAU</div><div class="kpi-val">${fN(bau)}</div><div class="kpi-sub">${fP(bau,total)}</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">Outside BAU</div><div class="kpi-val">${fN(oob)}</div><div class="kpi-sub">${fP(oob,total)} short notice</div></div>
+    </div>
+
+    <div class="sec">📡 By Channel — Click BAU or OOB to filter the table below</div>
+    <div style="font-size:11px;color:var(--soft);margin:-10px 0 14px">
+      Click <strong>✅ BAU</strong> to see within-policy cancellations · Click <strong>⚠️ OOB</strong> to see short-notice cancellations · Click again to clear
+    </div>
+    <div class="src-grid">${srcCards}</div>
+
+    ${filterBar}
+
+    <div class="panel full">
+      <div class="ph">
+        <div class="pt">
+          ${canFilter.mode==='oob'?'⚠️ Outside-BAU Cancellations':canFilter.mode==='bau'?'✅ Within-BAU Cancellations':'📋 All Cancellations'}
+          <span style="font-weight:400;font-size:11px;color:var(--soft);margin-left:6px">${filterDesc}</span>
+        </div>
+        <span class="pill ${canFilter.mode==='oob'?'red':canFilter.mode==='bau'?'green':'blue'}">${filteredRows.length} bookings</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr>
+            <th>Booking Ref</th><th>Channel</th><th>By</th>
+            <th style="text-align:right">Days to Check-in</th><th>BAU Status</th>
+            <th>Window</th><th>Reason</th>
+          </tr></thead>
+          <tbody>${tableRows||tableEmpty}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="two">
+      <div class="panel"><div class="ph"><div class="pt">📋 Cancellation Reasons (all channels)</div></div>
+        <div class="pb">${reasonBars||'<div style="color:var(--soft);font-size:12px">No reason data</div>'}</div>
+      </div>
+      <div class="commentary-box">
+        <div class="commentary-header"><div class="pt">✏️ Monthly Summary &amp; Commentary</div></div>
+        <div class="commentary-body">
+          <span class="commentary-label">Leadership narrative — what happened this month and why</span>
+          <textarea class="commentary-ta" id="can-ta" placeholder="e.g. ${total} total cancellations this month (${oob} outside BAU). Customer cancellations driven by… Owner cancellations related to… Concerns: …">${savedSum}</textarea>
+          <div style="margin-top:10px;display:flex;align-items:center">
+            <button class="save-btn" onclick="saveNote('can','can-ta',curMonth)">Save note</button>
+            <span class="save-ok" id="can-ok">✅ Saved</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// R&R RENDER
+// ══════════════════════════════════════════════════════════════════════════
+function renderRR(){
+  const el=document.getElementById('rr-content');
+  if(!rrData||!curMonth)return;
+  const d=rrData.months[curMonth];
+  if(!d){el.innerHTML=`<div class="empty">No R&R data for this month.</div>`;return;}
+  bk=parseInt(document.getElementById('bk-inp').value)||0;
+
+  const GEL_ALL=Object.entries(d.funds).filter(([k])=>k==='GEL Funded').reduce((a,[,v])=>a+v,0);
+
+  el.innerHTML=`<div class="fade">
+    <div class="kpi-grid">
+      <div class="kpi c-navy"><div class="kpi-lbl">Total Cases</div><div class="kpi-val">${fN(d.total)}</div><div class="kpi-sub">All types this month</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">Claims</div><div class="kpi-val">${fN(d.claims)}</div><div class="kpi-sub">${bk>0?fP(d.claims,bk)+' of bookings':''}</div></div>
+      <div class="kpi c-blue"><div class="kpi-lbl">Feedback &amp; Reviews</div><div class="kpi-val">${fN(d.feedback)}</div><div class="kpi-sub">${bk>0?fP(d.feedback,bk)+' of bookings':''}</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">GEL Spend</div><div class="kpi-val" style="font-size:22px">${f$(d.claims_funds.gel_val+d.feedback_funds.gel_val)}</div><div class="kpi-sub">${fN(GEL_ALL)} cases</div></div>
+      <div class="kpi c-green"><div class="kpi-lbl">Guest Recovery</div><div class="kpi-val" style="font-size:22px">${f$(d.claims_funds.rec_val)}</div><div class="kpi-sub">${fN(d.claims_funds.recovered)} cases</div></div>
+      <div class="kpi c-teal"><div class="kpi-lbl">Resolved ✅</div><div class="kpi-val">${fN(d.resolved_yes)}</div><div class="kpi-sub">${fP(d.resolved_yes,d.total)} resolution rate</div></div>
+    </div>
+
+    <div class="itab active" id="itab-overview">${renderOverviewTab(d)}</div>
+    <div class="itab" id="itab-claims">${renderClaimsTab(d)}</div>
+    <div class="itab" id="itab-feedback">${renderFeedbackTab(d)}</div>
+    <div class="itab" id="itab-financial">${renderFinancialTab(d)}</div>
+  </div>`;
+
+  // Restore active tab
+  document.querySelectorAll('.itab').forEach(t=>t.classList.remove('active'));
+  const act=document.getElementById('itab-'+curItab);
+  if(act)act.classList.add('active');
+}
+
+// ── OVERVIEW TAB ──────────────────────────────────────────────────────────
+function renderOverviewTab(d){
+  // Top 5 trending issues
+  const top5=d.top5_issues||[];
+  const rankClass=['t1','t2','t3','',''];
+  const trendItems=top5.length?top5.map(([name,count],i)=>`
+    <div class="trend-item">
+      <div class="trend-rank ${rankClass[i]}">${i+1}</div>
+      <div class="trend-info">
+        <div class="trend-name">${name}</div>
+        <div class="trend-sub">${fP(count,d.total)} of all cases · ${tfl(count)}</div>
+      </div>
+      <div class="trend-count">${count}</div>
+    </div>`).join('')
+  :'<div style="color:var(--soft);font-size:12px;padding:8px 0">No issue data available</div>';
+
+  // Top 3 damage types MSPs should focus on
+  const dmg=d.top3_damages||[];
+  const dmgColorMap={'Damages':'var(--red)','Additional Cleaning':'var(--orange)','Missing Items':'var(--gold)'};
+  const dmgActionMap={
+    'Damages':'Photograph all existing damage before guest arrival — brief MSPs on pre-check-in inspection',
+    'Additional Cleaning':'Review MSP cleaning standards — audit properties with repeat cleaning complaints',
+    'Missing Items':'Implement post-stay inventory checklist — MSPs to confirm all items at checkout',
+  };
+  const dmgCards=dmg.length?dmg.map(([name,count],i)=>`
+    <div class="dmg-card" style="border-color:${dmgColorMap[name]||'var(--red)'}">
+      <div class="dmg-type" style="color:${dmgColorMap[name]||'var(--red)'}">${name}</div>
+      <div class="dmg-count">${count}</div>
+      <div class="dmg-val">${fP(count,d.claims)} of claims</div>
+      <div class="dmg-action">${dmgActionMap[name]||''}</div>
+    </div>`).join('')
+  :'<div style="color:var(--soft);font-size:12px">No damage type data</div>';
+
+  const savedRR=localStorage.getItem('rr-summary-'+curMonth)||'';
+
+  return`
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">🔥 Top 5 Trending Issues</div><span style="font-size:11px;color:var(--soft)">All case types</span></div>
+        <div class="pb">${trendItems}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel">
+          <div class="ph"><div class="pt">📊 Month Snapshot</div></div>
+          <div class="pb">
+            <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">% Bookings with Claims</div><div class="fval" style="color:var(--red)">${bk>0?fP(d.claims,bk):'Enter bookings ↑'}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--blue)"></div><div class="fname">% Bookings with Feedback</div><div class="fval" style="color:var(--blue)">${bk>0?fP(d.feedback,bk):'—'}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">GEL Total (Claims + Feedback)</div><div class="fval" style="color:var(--red)">${f$(d.claims_funds.gel_val+d.feedback_funds.gel_val)}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--green)"></div><div class="fname">Recovered from Guests</div><div class="fval" style="color:var(--green)">${f$(d.claims_funds.rec_val)}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--navy)"></div><div class="fname">Written Off (unrecovered)</div><div class="fval" style="color:var(--navy)">${f$(d.claims_funds.wo_val)}</div></div>
+            <div class="frow" style="border-bottom:none"><div class="fdot" style="background:var(--gold)"></div><div class="fname">Open Claims</div><div class="fval" style="color:var(--gold)">${fN(d.open_claims)} · avg ${d.avg_days}d</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sec">🔨 MSP Damage Focus — Top 3 Claim Types to Address</div>
+    <div class="dmg-grid full">${dmgCards}</div>
+    <div class="commentary-box">
+      <div class="commentary-header"><div class="pt">✏️ Monthly Issues Commentary</div><span style="font-size:11px;color:var(--soft)">Saved to your browser</span></div>
+      <div class="commentary-body">
+        <span class="commentary-label">What were the issues and challenges this month? (For leadership presentation)</span>
+        <textarea class="commentary-ta" id="rr-ta" placeholder="e.g. This month we managed ${d.total} cases across ${d.claims} claims and ${d.feedback} feedback cases. Key challenges included… The top trending issue was… GEL spend of ${f$(d.claims_funds.gel_val)} was driven by… Going forward we recommend…">${savedRR}</textarea>
+        <div style="margin-top:10px;display:flex;align-items:center">
+          <button class="save-btn" onclick="saveNote('rr','rr-ta',curMonth)">Save note</button>
+          <span class="save-ok" id="rr-ok">✅ Saved</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── CLAIMS TAB ─────────────────────────────────────────────────────────────
+function renderClaimsTab(d){
+  const reasons=d.outstanding_reasons||{};
+  const totOut=Object.values(reasons).reduce((a,b)=>a+b,0);
+  const rDesc={'MSP - More Info':'Waiting on MSP quote, photos or confirmation',
+    'MSP - Quote/ Book':'Quote requested — MSP to book contractor',
+    'Guest - No Response':'Guest contacted but has not replied',
+    'Guest - Push Back':'Guest is disputing — may need escalation',
+    'Owner - Need Response':'Awaiting owner decision or quote',
+    'Contractor - Booked':'Repair booked — awaiting invoice',
+    'Courier Pending (Ordered)':'Replacement ordered — awaiting delivery',
+    'New':'Recently opened — awaiting first action'};
+  const rHtml=Object.entries(reasons).sort((a,b)=>b[1]-a[1]).map(([s,c])=>`
+    <div class="out-item">
+      <div><div class="out-reason">${s}</div><div class="out-desc">${rDesc[s]||''}</div></div>
+      <div class="out-count">${c}</div>
+      <div class="out-pct">${fP(c,totOut)}</div>
+    </div>`).join('')||'<div style="color:var(--soft);font-size:12px;padding:8px 0">No outstanding claims.</div>';
+
+  return`
+    <div class="three" style="margin-bottom:18px">
+      <div class="kpi c-red"><div class="kpi-lbl">% Bookings w/ Claims</div><div class="kpi-val">${fP(d.claims,bk||1)}</div><div class="kpi-sub">${fN(d.claims)} claims</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">% Resolved via GEL</div><div class="kpi-val">${fP(d.claims_funds.gel,d.resolved_yes||1)}</div><div class="kpi-sub">${fN(d.claims_funds.gel)} of ${fN(d.resolved_yes)} resolved</div></div>
+      <div class="kpi c-gold"><div class="kpi-lbl">Open Claims</div><div class="kpi-val">${fN(d.open_claims)}</div><div class="kpi-sub">Avg ${d.avg_days} days · oldest ${d.oldest} days</div></div>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">⏳ Outstanding — Why Open?</div><span class="pill red">${fN(totOut)}</span></div>
+        <div class="pb">${rHtml}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="panel">
+          <div class="ph"><div class="pt">⏱ Age of Open Claims</div></div>
+          <div class="pb">
+            <div class="age-grid">
+              <div class="age-box"><div class="age-n">${d.avg_days}</div><div class="age-l">Avg days open</div></div>
+              <div class="age-box"><div class="age-n warn">${d.oldest}</div><div class="age-l">Oldest open</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">❌ Write-offs &amp; Owner-Absorbed</div></div>
+          <div class="pb">
+            <div class="wb red">
+              <div class="wb-hdr"><div class="wb-lbl">❌ Funds Not Recovered</div><div class="wb-val">${f$(d.claims_funds.wo_val)}</div></div>
+              <div class="wb-desc">True business loss — never recovered. Review each case.</div>
+              <div class="wb-meta">${fN(d.claims_funds.written_off)} cases</div>
+            </div>
+            <div class="wb blue">
+              <div class="wb-hdr"><div class="wb-lbl">🏠 Owner Absorbed</div><div class="wb-val">${f$(d.claims_funds.own_val)}</div></div>
+              <div class="wb-desc">Owner funded — no GEL exposure but monitor relationship health.</div>
+              <div class="wb-meta">${fN(d.claims_funds.owner)} cases</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── FEEDBACK TAB ──────────────────────────────────────────────────────────
+function renderFeedbackTab(d){
+  const ff=d.feedback_funds||{};
+  const issues=d.all_issues||[];
+  const maxI=issues[0]?.[1]||1;
+  const iColors=['navy','red','gold','blue','teal','green','orange','navy','red','gold'];
+  const iHtml=issues.map(([k,v],i)=>`<div class="brow">
+    <div class="blbl" title="${k}">${k}</div>
+    <div class="btrack"><div class="bfill ${iColors[i%10]}" style="width:${v/maxI*100}%"></div></div>
+    <div class="bcnt">${v}</div>
+    <div class="bpct">${fP(v,d.feedback)}</div>
+    <div style="min-width:85px;text-align:right">${tfl(v)}</div>
+  </div>`).join('')||'<div style="color:var(--soft);font-size:12px">No categorised feedback.</div>';
+
+  return`
+    <div class="three" style="margin-bottom:18px">
+      <div class="kpi c-blue"><div class="kpi-lbl">% Bookings w/ Feedback</div><div class="kpi-val">${fP(d.feedback,bk||1)}</div><div class="kpi-sub">${fN(d.feedback)} cases</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">GEL-Funded Feedback</div><div class="kpi-val">${fP(ff.gel||0,d.feedback||1)}</div><div class="kpi-sub">${fN(ff.gel||0)} cases · ${f$(ff.gel_val||0)}</div></div>
+      <div class="kpi c-blue"><div class="kpi-lbl">Owner Funded</div><div class="kpi-val">${fN(ff.owner||0)}</div><div class="kpi-sub">${f$(ff.own_val||0)}</div></div>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">💰 Feedback Funding</div></div>
+        <div class="pb">
+          <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">⚠️ We paid (GEL)</div><div class="fcnt">${fN(ff.gel||0)}</div><div class="fval" style="color:var(--red)">${f$(ff.gel_val||0)}</div></div>
+          <div class="frow"><div class="fdot" style="background:var(--blue)"></div><div class="fname">🏠 Owner paid</div><div class="fcnt">${fN(ff.owner||0)}</div><div class="fval" style="color:var(--blue)">${f$(ff.own_val||0)}</div></div>
+          <div class="frow"><div class="fdot" style="background:var(--gold)"></div><div class="fname">✂️ Split cost</div><div class="fcnt">${fN(ff.split||0)}</div><div class="fval" style="color:var(--gold)">${f$(ff.spl_val||0)}</div></div>
+          <div class="frow" style="border-bottom:none"><div class="fdot" style="background:var(--teal)"></div><div class="fname">💚 No compensation</div><div class="fcnt">${fN(ff.no_cost||0)}</div><div class="fval" style="color:var(--teal)">—</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt">🔍 Issues Raised</div></div>
+        <div class="pb">
+          ${iHtml}
+          <div style="margin-top:10px;font-size:10.5px;color:var(--soft)">🔴 Concern &gt;20 · 🟡 Watch 10–20 · 🟢 OK &lt;10</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── FINANCIAL TAB ─────────────────────────────────────────────────────────
+function renderFinancialTab(d){
+  const f=d.funds||{};
+  const rows=[
+    ['✅ Guest paid','green',f['Guest Payment Received']||0,d.claims_funds.rec_val],
+    ['🏠 Owner paid','blue',f['Owner Funded']||0,d.claims_funds.own_val],
+    ['⚠️ GEL absorbed','red',(f['GEL Funded']||0),d.claims_funds.gel_val+d.feedback_funds.gel_val],
+    ['✂️ Split','gold',f['Split - Advise in notes']||0,0],
+    ['💚 No cost','teal',f['No Funds Required']||0,0],
+    ['⏳ Pending','slate',f['Pending Recovery']||0,0],
+    ['❌ Written off','red',f['FUNDS NOT RECOVERED']||0,d.claims_funds.wo_val],
+    ['🔄 Airbnb refund','blue',f['Airbnb Guest Refund']||0,0],
+    ['🛡️ Aircover','green',f['Aircover Recovery']||0,0],
+  ];
+  const totC=rows.reduce((a,r)=>a+r[2],0);
+  const totV=rows.reduce((a,r)=>a+r[3],0);
+  const tblHtml=rows.map(([l,c,cnt,val])=>`<tr>
+    <td><span class="pill ${c==='slate'?'teal':c}">${l}</span></td>
+    <td class="n">${fN(cnt)}</td>
+    <td class="n">${f$(val)||'—'}</td>
+    <td class="n" style="color:var(--soft)">${totC>0?fP(cnt,totC):'—'}</td>
+  </tr>`).join('');
+
+  return`
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">💰 Full Funds Status Breakdown</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Status</th><th style="text-align:right">Cases</th><th style="text-align:right">Value</th><th style="text-align:right">%</th></tr></thead>
+            <tbody>${tblHtml}</tbody>
+            <tfoot><tr><td style="font-weight:700">Total</td><td class="n">${fN(totC)}</td><td class="n">${f$(totV)}</td><td class="n">100%</td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="panel">
+          <div class="ph"><div class="pt">❌ Write-offs &amp; Owner Costs</div></div>
+          <div class="pb">
+            <div class="wb red">
+              <div class="wb-hdr"><div class="wb-lbl">❌ Funds Not Recovered</div><div class="wb-val">${f$(d.claims_funds.wo_val)}</div></div>
+              <div class="wb-meta">${fN(d.claims_funds.written_off)} cases</div>
+            </div>
+            <div class="wb blue">
+              <div class="wb-hdr"><div class="wb-lbl">🏠 Owner Absorbed</div><div class="wb-val">${f$(d.claims_funds.own_val)}</div></div>
+              <div class="wb-meta">${fN(d.claims_funds.owner)} cases</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">✅ Recovery Summary</div></div>
+          <div class="pb">
+            <div class="frow"><div class="fdot" style="background:var(--green)"></div><div class="fname">Guest recovery</div><div class="fval" style="color:var(--green)">${f$(d.claims_funds.rec_val)}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">GEL spend (total)</div><div class="fval" style="color:var(--red)">${f$(d.claims_funds.gel_val+d.feedback_funds.gel_val)}</div></div>
+            <div class="frow" style="border-bottom:none"><div class="fdot" style="background:var(--navy)"></div><div class="fname">Net GEL exposure</div><div class="fval" style="color:var(--navy);font-weight:700">${f$(Math.max(0,(d.claims_funds.gel_val+d.feedback_funds.gel_val)-d.claims_funds.rec_val))}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── SAVE NOTES ─────────────────────────────────────────────────────────────
+function saveNote(prefix,taId,month){
+  const ta=document.getElementById(taId);
+  if(!ta)return;
+  localStorage.setItem(prefix+'-summary-'+month,ta.value);
+  const ok=document.getElementById(prefix+'-ok');
+  if(ok){ok.style.display='flex';setTimeout(()=>ok.style.display='none',2200);}
+}
+</script>
+</body>
+</html>
