@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bachcare Operations Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2A4A;--navy2:#243660;--teal:#007A85;--teal-lt:#E0F4F5;
+  --red:#B83227;--red-lt:#FDEDEB;--green:#1A6E42;--green-lt:#E6F5EE;
+  --gold:#9E6F00;--gold-lt:#FDF4DC;--blue:#2A4A8C;--blue-lt:#EBF0F8;
+  --orange:#C45000;--orange-lt:#FDF0E6;--slate:#5A6B8A;--mist:#F3F5FA;
+  --border:#DDE3EE;--white:#FFFFFF;--text:#1C2833;--soft:#5A6B8A;
+  --r:10px;--sh:0 1px 12px rgba(27,42,74,.07);--sh-lg:0 6px 32px rgba(27,42,74,.13)
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#EAECF3;color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--navy);height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 36px;position:sticky;top:0;z-index:200;box-shadow:0 2px 18px rgba(0,0,0,.22)}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:34px;height:34px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hdr-name{font-family:'DM Serif Display',serif;font-size:19px;color:#fff;letter-spacing:-.2px}
+.hdr-tag{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.6px;font-weight:300}
+.hdr-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.35);text-align:right}
+
+/* TOP TABS */
+.top-nav{background:var(--navy2);display:flex;align-items:center;padding:0 36px;border-bottom:1px solid rgba(255,255,255,.08)}
+.top-tab{padding:13px 22px;font-size:13px;font-weight:600;color:rgba(255,255,255,.5);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;transition:all .15s}
+.top-tab:hover{color:rgba(255,255,255,.8)}
+.top-tab.active{color:#fff;border-bottom-color:var(--teal)}
+
+/* CONTROL BAR */
+.ctrl{background:var(--white);border-bottom:1px solid var(--border);padding:12px 36px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ctrl-label{font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+.month-pills{display:flex;gap:5px;flex-wrap:wrap}
+.mpill{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--slate);cursor:pointer;transition:all .15s}
+.mpill:hover{border-color:var(--teal);color:var(--teal)}
+.mpill.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.bk-wrap{margin-left:auto;display:flex;align-items:center;gap:9px}
+.bk-lbl{font-size:11px;color:var(--slate);font-weight:500}
+.bk-inp{width:95px;padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--navy);text-align:center;outline:none;transition:border-color .15s}
+.bk-inp:focus{border-color:var(--teal)}
+
+/* MAIN */
+.main{padding:24px 36px 56px;max-width:1440px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* DROP ZONE */
+.dz-label{display:flex;align-items:center;gap:16px;padding:18px 20px;
+  border:2px dashed var(--border);border-radius:var(--r);background:var(--white);
+  margin-bottom:24px;cursor:pointer;transition:border-color .2s,background .2s;
+  user-select:none}
+.dz-label:hover{border-color:var(--teal);background:var(--teal-lt)}
+.dz-label.drag-over{border-color:var(--teal);background:var(--teal-lt)}
+.dz-label.loaded{border-color:var(--green);border-style:solid;background:var(--green-lt)}
+.dz-label.err{border-color:var(--red);border-style:solid;background:var(--red-lt)}
+.dz-icon{font-size:28px;flex-shrink:0;pointer-events:none}
+.dz-text{flex:1;min-width:0;pointer-events:none}
+.dz-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.dz-label.loaded .dz-title{color:var(--green)}
+.dz-label.err .dz-title{color:var(--red)}
+.dz-sub{font-size:11px;color:var(--soft)}
+.dz-pill{flex-shrink:0;padding:8px 18px;background:var(--navy);color:#fff;
+  border-radius:7px;font-size:12px;font-weight:700;pointer-events:none;white-space:nowrap}
+.dz-label:hover .dz-pill{background:var(--teal)}
+.dz-label.loaded .dz-pill{background:var(--teal)}
+.dz-label input[type=file]{display:none}
+.dz-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0}
+.drop-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0}
+
+/* SECTION HEADS */
+.sec{font-family:'DM Serif Display',serif;font-size:16px;color:var(--navy);margin:24px 0 14px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);margin-left:6px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--white);border-radius:var(--r);padding:18px 18px 14px;box-shadow:var(--sh);border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.c-navy::before{background:var(--navy)}.kpi.c-red::before{background:var(--red)}
+.kpi.c-blue::before{background:var(--blue)}.kpi.c-gold::before{background:var(--gold)}
+.kpi.c-teal::before{background:var(--teal)}.kpi.c-green::before{background:var(--green)}
+.kpi.c-orange::before{background:var(--orange)}
+.kpi-lbl{font-size:10.5px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:30px;line-height:1;margin-bottom:3px}
+.kpi.c-red .kpi-val{color:var(--red)}.kpi.c-blue .kpi-val{color:var(--blue)}
+.kpi.c-gold .kpi-val{color:var(--gold)}.kpi.c-teal .kpi-val{color:var(--teal)}
+.kpi.c-green .kpi-val{color:var(--green)}.kpi.c-orange .kpi-val{color:var(--orange)}
+.kpi.c-navy .kpi-val{color:var(--navy)}
+.kpi-sub{font-size:10.5px;color:var(--soft)}
+
+/* LAYOUT */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:20px}
+.full{margin-bottom:20px}
+@media(max-width:900px){.two,.three,.drop-2col{grid-template-columns:1fr}.main,.ctrl,.hdr,.top-nav{padding-left:16px;padding-right:16px}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* PANEL */
+.panel{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);overflow:hidden}
+.ph{padding:14px 18px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:12.5px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px}
+.pb{padding:16px 18px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:7px 9px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--soft);border-bottom:1.5px solid var(--border)}
+.tbl td{padding:8px 9px;border-bottom:1px solid var(--mist);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--mist)}
+.tbl td.n{font-family:'DM Mono',monospace;text-align:right;font-size:11.5px}
+.tbl tfoot td{font-weight:700;border-top:2px solid var(--border);background:var(--mist);padding:9px}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:16px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.pill.red{background:var(--red-lt);color:var(--red)}.pill.green{background:var(--green-lt);color:var(--green)}
+.pill.gold{background:var(--gold-lt);color:var(--gold)}.pill.blue{background:var(--blue-lt);color:var(--blue)}
+.pill.teal{background:var(--teal-lt);color:var(--teal)}.pill.orange{background:var(--orange-lt);color:var(--orange)}
+
+/* BAR ROWS */
+.brow{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.brow:last-child{margin-bottom:0}
+.blbl{font-size:12px;color:var(--text);min-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btrack{flex:1;height:7px;background:var(--mist);border-radius:4px;overflow:hidden}
+.bfill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bfill.navy{background:var(--navy)}.bfill.red{background:var(--red)}.bfill.teal{background:var(--teal)}
+.bfill.gold{background:var(--gold)}.bfill.blue{background:var(--blue)}.bfill.green{background:var(--green)}
+.bfill.orange{background:var(--orange)}
+.bcnt{font-family:'DM Mono',monospace;font-size:11px;color:var(--soft);min-width:28px;text-align:right}
+.bpct{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--soft);min-width:38px;text-align:right}
+
+/* TREND ITEMS */
+.trend-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--mist)}
+.trend-item:last-child{border-bottom:none}
+.trend-rank{font-family:'DM Serif Display',serif;font-size:22px;color:var(--border);min-width:28px;text-align:center}
+.trend-rank.t1{color:var(--red)}.trend-rank.t2{color:var(--orange)}.trend-rank.t3{color:var(--gold)}
+.trend-info{flex:1}
+.trend-name{font-size:13px;font-weight:600;color:var(--navy)}
+.trend-sub{font-size:11px;color:var(--soft);margin-top:2px}
+.trend-count{font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy)}
+
+/* DAMAGE FOCUS CARDS */
+.dmg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.dmg-card{background:var(--mist);border-radius:8px;padding:14px;border-left:3px solid var(--red)}
+.dmg-type{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.dmg-count{font-family:'DM Serif Display',serif;font-size:26px;color:var(--navy)}
+.dmg-val{font-size:11px;color:var(--soft);margin-top:2px}
+.dmg-action{font-size:10.5px;color:var(--soft);margin-top:6px;line-height:1.4;font-style:italic}
+
+/* OUTSTANDING */
+.out-item{padding:10px 0;border-bottom:1px solid var(--mist);display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:start}
+.out-item:last-child{border-bottom:none}
+.out-reason{font-size:12.5px;font-weight:700;color:var(--navy)}
+.out-desc{font-size:10.5px;color:var(--soft);margin-top:2px;line-height:1.4}
+.out-count{font-family:'DM Serif Display',serif;font-size:20px;color:var(--red);text-align:right}
+.out-pct{font-size:10.5px;color:var(--soft);text-align:right}
+
+/* AGE BOXES */
+.age-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.age-box{background:var(--mist);border-radius:8px;padding:14px;text-align:center}
+.age-n{font-family:'DM Serif Display',serif;font-size:34px;color:var(--navy)}
+.age-n.warn{color:var(--red)}
+.age-l{font-size:10px;color:var(--soft);font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+
+/* WRITE-OFF BOX */
+.wb{border-radius:8px;padding:14px;margin-bottom:10px;border-left:4px solid}
+.wb:last-child{margin-bottom:0}
+.wb.red{background:var(--red-lt);border-color:var(--red)}
+.wb.blue{background:var(--blue-lt);border-color:var(--blue)}
+.wb-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.wb-lbl{font-size:12px;font-weight:700}
+.wb.red .wb-lbl{color:var(--red)}.wb.blue .wb-lbl{color:var(--blue)}
+.wb-val{font-family:'DM Serif Display',serif;font-size:22px}
+.wb.red .wb-val{color:var(--red)}.wb.blue .wb-val{color:var(--blue)}
+.wb-desc{font-size:11px;color:var(--soft);line-height:1.5}
+.wb-meta{font-size:10.5px;color:var(--soft);margin-top:5px;font-family:'DM Mono',monospace}
+
+/* COMMENTARY BOX */
+.commentary-box{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);margin-bottom:20px}
+.commentary-header{padding:14px 18px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.commentary-body{padding:16px 18px}
+.commentary-label{font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block}
+.commentary-ta{width:100%;min-height:100px;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;line-height:1.6;transition:border-color .15s;background:var(--mist)}
+.commentary-ta:focus{border-color:var(--teal);background:var(--white)}
+.commentary-ta::placeholder{color:var(--soft);font-style:italic}
+.save-btn{padding:6px 16px;border:none;background:var(--teal);color:#fff;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
+.save-btn:hover{background:var(--navy)}
+.save-ok{font-size:11px;color:var(--green);display:none;align-self:center;margin-left:8px}
+
+
+.frow{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--mist);gap:9px;font-size:12px}
+.frow:last-child{border-bottom:none}
+.fdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fname{flex:1;color:var(--text)}
+.fcnt{font-family:'DM Mono',monospace;min-width:28px;text-align:right;color:var(--soft);font-size:11.5px}
+.fval{font-family:'DM Mono',monospace;min-width:85px;text-align:right;font-size:11.5px;font-weight:600}
+
+/* INNER TABS */
+.itab-nav{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+.itab-btn{padding:9px 20px;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--soft);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .15s}
+.itab-btn:hover{color:var(--navy)}
+.itab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
+.itab{display:none}.itab.active{display:block}
+
+/* BOOKINGS STRIP */
+.bk-strip{background:var(--white);border-bottom:1px solid var(--border);
+  padding:10px 36px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.bk-strip-label{font-size:11px;font-weight:700;color:var(--slate);
+  text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+.bk-dz{display:flex;align-items:center;gap:10px;padding:7px 14px;
+  border:1.5px dashed var(--border);border-radius:8px;cursor:pointer;
+  transition:all .18s;background:var(--mist);flex:1;max-width:420px}
+.bk-dz:hover{border-color:var(--teal);background:var(--teal-lt)}
+.bk-dz.loaded{border-color:var(--green);border-style:solid;background:var(--green-lt)}
+.bk-dz.loaded:hover{border-color:var(--teal);background:var(--teal-lt)}
+.bk-dz input[type=file]{display:none}
+.bk-dz-icon{font-size:18px;flex-shrink:0;pointer-events:none}
+.bk-dz-text{flex:1;pointer-events:none}
+.bk-dz-title{font-size:12px;font-weight:700;color:var(--navy)}
+.bk-dz.loaded .bk-dz-title{color:var(--green)}
+.bk-dz-sub{font-size:10px;color:var(--soft)}
+.bk-dz-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:14px;
+  background:var(--navy);color:#fff;pointer-events:none;white-space:nowrap;flex-shrink:0}
+.bk-dz:hover .bk-dz-pill{background:var(--teal)}
+.bk-dz.loaded .bk-dz-pill{background:var(--teal)}
+.bk-count-display{display:flex;align-items:center;gap:8px;margin-left:8px}
+.bk-count-val{font-family:'DM Serif Display',serif;font-size:22px;color:var(--navy);line-height:1}
+.bk-count-lbl{font-size:10px;color:var(--soft);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.bk-manual-wrap{display:flex;align-items:center;gap:7px;margin-left:4px}
+.bk-manual-lbl{font-size:11px;color:var(--soft)}
+.bk-inp{width:88px;padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'DM Mono',monospace;font-size:13px;font-weight:500;
+  color:var(--navy);text-align:center;outline:none;transition:border-color .15s}
+.bk-inp:focus{border-color:var(--teal)}
+.bk-source-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;
+  background:var(--teal-lt);color:var(--teal)}
+
+.rbtn-sm{padding:5px 12px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.rbtn-sm:hover{opacity:.85}
+
+/* EMAIL PREVIEW */
+.email-preview{min-height:280px;padding:28px 32px;border:1.5px solid var(--border);border-radius:8px;
+  background:var(--white);font-family:'Aptos','Aptos (Body)','Calibri',sans-serif;font-size:10pt;
+  color:#000;line-height:1.6;overflow-y:auto;max-height:640px}
+.email-preview .ep-placeholder{color:var(--soft);font-style:italic;font-size:13px;
+  display:flex;align-items:center;justify-content:center;min-height:200px}
+.email-preview p{margin:0 0 10px}
+.email-preview .ep-intro{margin-bottom:18px}
+.email-preview .ep-divider{border:none;border-top:1px solid #ccc;margin:18px 0}
+.email-preview .ep-section{margin-bottom:6px;font-size:11pt;font-weight:700;color:#000}
+.email-preview .ep-subsection{font-weight:700;margin:14px 0 4px;font-size:10pt}
+.email-preview .ep-body{margin:0 0 10px}
+.email-preview ul{margin:6px 0 10px 20px;padding:0}
+.email-preview ul li{margin-bottom:3px}
+.email-preview .ep-bold{font-weight:700}
+.email-preview .ep-sign{margin-top:20px}
+.email-preview table{border-collapse:collapse;margin:10px 0}
+.email-preview table th{font-weight:700;padding:4px 16px 4px 0;text-align:left;border-bottom:1px solid #ccc}
+.email-preview table td{padding:3px 16px 3px 0}
+
+.empty{display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--soft);font-size:13px;flex-direction:column;gap:10px;text-align:center}
+.fade{animation:fi .28s ease}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(max-width:700px){.src-grid,.dmg-grid{grid-template-columns:1fr 1fr}}
+
+
+.can-report-box{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);
+  border:2px solid var(--teal);margin-bottom:24px;overflow:hidden}
+.can-report-hdr{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.can-report-hdr-title{font-family:'DM Serif Display',serif;font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
+.can-report-hdr-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.can-report-body{padding:20px}
+
+
+.report-box{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:2px solid var(--teal);margin-bottom:24px;overflow:hidden}
+.report-hdr{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.report-hdr-title{font-family:'DM Serif Display',serif;font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
+.report-hdr-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.report-body{padding:20px}
+.report-output{width:100%;min-height:280px;padding:14px 16px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:'Aptos','Aptos (Body)','Calibri',sans-serif;font-size:10pt;color:var(--text);line-height:1.6;
+  resize:vertical;outline:none;background:var(--mist);white-space:pre-wrap}
+.report-output:focus{border-color:var(--teal);background:#fff}
+.report-btns{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.rbtn{padding:8px 18px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.rbtn.primary{background:var(--navy);color:#fff}.rbtn.primary:hover{background:var(--teal)}
+.rbtn.copy{background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal)}.rbtn.copy:hover{background:var(--teal);color:#fff}
+.rbtn.clear{background:var(--mist);color:var(--soft);border:1px solid var(--border)}.rbtn.clear:hover{background:var(--border)}
+.copy-ok{font-size:11px;color:var(--green);display:none;align-self:center;font-weight:600}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">🏡</div>
+    <div>
+      <div class="hdr-name">Bachcare Operations</div>
+      <div class="hdr-tag">Monthly Performance Dashboard</div>
+    </div>
+  </div>
+  <span class="hdr-meta" id="hdr-meta">No data loaded</span>
+</header>
+
+<nav class="top-nav" style="padding:0 36px">
+  <span style="font-size:13px;font-weight:600;color:#fff;padding:13px 0;display:inline-block">🏠 Reputations &amp; Resolutions</span>
+</nav>
+
+<!-- BOOKINGS STRIP -->
+<div class="bk-strip">
+  <span class="bk-strip-label">📅 Bookings</span>
+  <label class="bk-dz" id="dz-bk" ondragover="dzOver(event,'dz-bk')" ondragleave="dzLeave('dz-bk')" ondrop="dzDrop(event,'bk')">
+    <input type="file" accept=".xlsx,.xls,.csv" onchange="fileChosen(this,'bk')">
+    <div class="bk-dz-icon">📊</div>
+    <div class="bk-dz-text">
+      <div class="bk-dz-title" id="dz-bk-t">Drop Bookings Export here</div>
+      <div class="bk-dz-sub">Excel with Holiday Start column · 3–6 months of bookings</div>
+    </div>
+    <div class="bk-dz-pill">Choose File</div>
+  </label>
+  <div class="bk-count-display" id="bk-auto-display" style="display:none">
+    <div>
+      <div class="bk-count-val" id="bk-auto-val">—</div>
+      <div class="bk-count-lbl">check-ins this month</div>
+    </div>
+    <span class="bk-source-badge">Auto</span>
+  </div>
+  <div class="bk-manual-wrap">
+    <span class="bk-manual-lbl" id="bk-manual-lbl">or enter manually:</span>
+    <input class="bk-inp" type="number" id="bk-inp" value="0" min="0" placeholder="0">
+  </div>
+</div>
+
+<!-- CONTROL BAR -->
+<div class="ctrl">
+  <span class="ctrl-label">Month</span>
+  <div class="month-pills" id="month-pills">
+    <span style="font-size:12px;color:var(--soft);font-style:italic">Upload a file to see months</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:8px">
+    <span style="font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.5px">Date range:</span>
+    <input type="date" id="dr-from" title="From date" style="padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--navy);outline:none" onchange="applyDateRange()">
+    <span style="font-size:11px;color:var(--soft)">to</span>
+    <input type="date" id="dr-to" title="To date" style="padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--navy);outline:none" onchange="applyDateRange()">
+    <button onclick="clearDateRange()" id="dr-clear" style="display:none;padding:3px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;font-size:11px;color:var(--soft);cursor:pointer" title="Clear date range">✕ Clear</button>
+    <span id="dr-badge" style="display:none" class="pill teal">Date filter active</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- R&R PAGE                                               -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="page active" id="page-rr">
+<main class="main">
+  <label class="dz-label" id="dz-rr" ondragover="dzOver(event,'dz-rr')" ondragleave="dzLeave('dz-rr')" ondrop="dzDrop(event,'rr')">
+    <input type="file" accept=".xlsx,.xls" onchange="fileChosen(this,'rr')">
+    <div class="dz-icon">📊</div>
+    <div class="dz-text">
+      <div class="dz-title" id="dz-rr-t">R&amp;R Tracker</div>
+      <div class="dz-sub">Click anywhere here to browse, or drag &amp; drop your file — data loads instantly</div>
+    </div>
+    <div class="dz-pill">📂 Choose File</div>
+  </label>
+
+  <!-- REVIEWS DROP ZONE -->
+  <label class="dz-label" id="dz-rev" ondragover="dzOver(event,'dz-rev')" ondragleave="dzLeave('dz-rev')" ondrop="dzDrop(event,'rev')" style="margin-bottom:16px">
+    <input type="file" accept=".xlsx,.xls,.csv" onchange="fileChosen(this,'rev')">
+    <div class="dz-icon">⭐</div>
+    <div class="dz-text">
+      <div class="dz-title" id="dz-rev-t">Reviews Export (optional)</div>
+      <div class="dz-sub">One row per review with platform, sentiment and review text columns · Click to browse</div>
+    </div>
+    <div class="dz-pill">📂 Choose File</div>
+  </label>
+
+  <div class="report-box">
+    <div class="report-hdr">
+      <div>
+        <div class="report-hdr-title">📋 4DX Report Generator</div>
+        <div class="report-hdr-sub">Renders a formatted email preview · Copy to Outlook or Word</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="rbtn-sm" id="btn-preview" onclick="setReportView('preview')" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3)">👁 Preview</button>
+        <button class="rbtn-sm" id="btn-plain" onclick="setReportView('plain')" style="background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.2)">📄 Plain Text</button>
+      </div>
+    </div>
+    <div class="report-body">
+      <!-- PREVIEW VIEW -->
+      <div id="report-preview" class="email-preview">
+        <div class="ep-placeholder">Click Generate Report to see the formatted email preview</div>
+      </div>
+      <!-- PLAIN TEXT VIEW (hidden by default) -->
+      <textarea class="report-output" id="report-out" placeholder="Plain text version appears here after generating…" readonly style="display:none"></textarea>
+      <div class="report-btns">
+        <button class="rbtn primary" type="button" onclick="generateReport()">⚡ Generate Report</button>
+        <button class="rbtn copy" type="button" onclick="copyReport()">📋 Copy to Clipboard</button>
+        <button class="rbtn clear" type="button" onclick="clearReport()">✕ Clear</button>
+        <span class="copy-ok" id="copy-ok" style="display:none">✅ Copied!</span>
+        <span style="font-size:11px;color:var(--soft);align-self:center;margin-left:4px">Upload tracker and bookings file, then select a month</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="itab-nav">
+    <button class="itab-btn active" onclick="switchItab('overview',this)">📊 Overview</button>
+    <button class="itab-btn" onclick="switchItab('claims',this)">📋 Claims</button>
+    <button class="itab-btn" onclick="switchItab('feedback',this)">💬 Feedback</button>
+    <button class="itab-btn" onclick="switchItab('financial',this)">💰 Financial</button>
+  </div>
+  <div id="rr-content"><div class="empty"><div>📊</div><div>Upload the R&amp;R Tracker above — data appears immediately</div></div></div>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let rrData   = null;  // { months:{}, month_list:[] }
+let bkData   = null;  // { months:{ 'YYYY-MM': count } }
+let revData  = null;  // { months:{ 'YYYY-MM': {pos,neu,neg,blank,platforms:{}} } }
+let curMonth = null;
+let bk       = 0;     // bookings for current month (auto-filled from bkData or manual)
+let curItab  = 'overview';
+
+// ── FORMATTERS ─────────────────────────────────────────────────────────────
+const f$  = v => (!v&&v!==0)||v===0 ? '—' : '$'+v.toLocaleString('en-NZ',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fN  = v => v===0||v===null||v===undefined ? '—' : Number(v).toLocaleString();
+const fP  = (n,d) => !d ? '—' : (n/d*100).toFixed(1)+'%';
+const tfl = n => n>20?'<span class="pill red">🔴 Concern</span>':n>10?'<span class="pill gold">🟡 Watch</span>':'<span class="pill green">🟢 OK</span>';
+function switchItab(id,btn){
+  curItab=id;
+  document.querySelectorAll('.itab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.itab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const el=document.getElementById('itab-'+id);
+  if(el) el.classList.add('active');
+}
+
+// ── DROP ZONES ─────────────────────────────────────────────────────────────
+function dzOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag-over')}
+function dzLeave(id){document.getElementById(id).classList.remove('drag-over')}
+function dzDrop(e,type){
+  e.preventDefault();e.stopPropagation();
+  const map={'rr':'dz-rr','bk':'dz-bk','rev':'dz-rev'};
+  dzLeave(map[type]);
+  const file=e.dataTransfer.files[0];
+  if(file) processFile(file,type);
+}
+function fileChosen(inp,type){
+  if(!inp.files||!inp.files[0])return;
+  const file=inp.files[0];
+  processFile(file,type);
+  // Reset so same file can be chosen again next time
+  setTimeout(()=>{ try{ inp.value=''; }catch(e){} },100);
+}
+
+// ── FILE PROCESSING ────────────────────────────────────────────────────────
+function setDzStatus(dzId, state, msg){
+  const dz=document.getElementById(dzId);
+  if(!dz)return;
+  dz.classList.remove('loaded','err','drag-over');
+  dz.style.borderColor='';
+  if(state==='loading') dz.style.borderColor='var(--gold)';
+  if(state==='loaded')  dz.classList.add('loaded');
+  if(state==='err')     dz.classList.add('err');
+  const t=document.getElementById(dzId+'-t');
+  if(t&&msg) t.textContent=msg;
+  const pill=dz.querySelector('.dz-pill');
+  if(pill){
+    if(state==='loading') pill.textContent='⏳ Reading…';
+    else if(state==='loaded') pill.textContent='📂 Replace';
+    else pill.textContent='📂 Choose File';
+  }
+}
+function setDzLoading(dzId,filename){ setDzStatus(dzId,'loading','⏳ Reading '+filename+'…'); }
+
+function processFile(file, type){
+  if(!file){ console.warn('processFile called with no file'); return; }
+  const dzId = type==='bk'?'dz-bk': type==='rr'?'dz-rr':'dz-rr';
+  setDzLoading(dzId, file.name);
+  if(typeof XLSX==='undefined'){
+    alert('The XLSX library has not loaded yet. Please wait a moment and try again.');
+    return;
+  }
+  const reader=new FileReader();
+  reader.onerror=()=>{
+    setDzStatus(dzId,'err','❌ Could not read file — try again');
+  };
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});
+      const sheetName=wb.SheetNames[0];
+      const rrSheet=wb.SheetNames.find(n=>n.includes('R&R')||n.includes('FY26'))||sheetName;
+      if(type==='bk'){
+        processBookings(wb.Sheets[sheetName],file.name);
+        return;
+      }
+      if(type==='rev'){
+        processReviews(wb.Sheets[sheetName],file.name);
+        return;
+      }
+      if(type==='rr'){
+        processRR(wb.Sheets[rrSheet],file.name,type);
+      }
+    }catch(err){
+      setDzStatus(dzId,'err','❌ '+err.message);
+      console.error('processFile error:',err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── DATE PARSING UTILITY ──────────────────────────────────────────────────
+// Converts Excel serial numbers and date strings to JS Date objects.
+// Must be defined before processBookings and processRR which both use it.
+function xlSerial(val){
+  if(typeof val==='number'&&val>40000&&val<70000)
+    return new Date(Date.UTC(1899,11,30)+val*86400000);
+  if(val instanceof Date&&!isNaN(val)) return val;
+  if(typeof val==='string'&&val.trim()){
+    // Handle DD/MM/YYYY and DD-MM-YYYY formats common in NZ exports
+    const p=val.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if(p) return new Date(+p[3],+p[2]-1,+p[1]);
+    // Handle YYYY-MM-DD (ISO)
+    const iso=val.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(iso) return new Date(+iso[1],+iso[2]-1,+iso[3]);
+    const d=new Date(val);
+    return isNaN(d)?null:d;
+  }
+  return null;
+}
+
+// ── BOOKINGS FILE PROCESSING ──────────────────────────────────────────────
+// Reads a bookings export with Holiday Start column.
+// Counts one row = one check-in, groups by Holiday Start month.
+function processBookings(ws, filename){
+  const raw2d = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  if(raw2d.length<2){
+    setDzStatus('dz-bk','err','⚠️ File appears empty');
+    return;
+  }
+
+  // ── Find the real header row ───────────────────────────────────────────────
+  // Scan up to first 10 rows — the file may have title/blank rows above headers
+  const COL_NAMES = ['holiday start','holiday start date','check in','checkin','check-in'];
+  let headerRowIdx = -1;
+  let holStartCol  = -1;
+
+  for(let i=0; i<Math.min(raw2d.length,10); i++){
+    const rowLower = raw2d[i].map(c=>String(c||'').trim().toLowerCase());
+    const colIdx   = rowLower.findIndex(c=>COL_NAMES.some(n=>c===n||c.includes('holiday start')));
+    if(colIdx !== -1){
+      headerRowIdx = i;
+      holStartCol  = colIdx;
+      break;
+    }
+  }
+
+  if(headerRowIdx === -1 || holStartCol === -1){
+    // Show what we actually found to help diagnose
+    const firstFewRows = raw2d.slice(0,4).map(r=>r.filter(Boolean).slice(0,5).join(' | ')).join(' // ');
+    setDzStatus('dz-bk','err',`⚠️ Could not find "Holiday Start" column. First rows: ${firstFewRows}`);
+    return;
+  }
+
+  // ── Count check-ins per month, starting from row after header ─────────────
+  const months={};
+  let total=0;
+  for(let i=headerRowIdx+1; i<raw2d.length; i++){
+    const r=raw2d[i];
+    if(r.every(c=>c===''||c===null||c===undefined))continue;
+    const dateVal = r[holStartCol];
+    const d = xlSerial(dateVal);
+    if(!d)continue;
+    const mk  = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const lbl = d.toLocaleDateString('en-NZ',{month:'long',year:'numeric'});
+    if(!months[mk]) months[mk]={label:lbl, count:0};
+    months[mk].count++;
+    total++;
+  }
+
+  if(total===0){
+    setDzStatus('dz-bk','err',`⚠️ Found "Holiday Start" column but no valid dates. Check the column contains dates.`);
+    return;
+  }
+
+  bkData = { months, total_rows:total, filename };
+
+  setDzStatus('dz-bk','loaded',`✅ ${filename} — ${total.toLocaleString()} bookings across ${Object.keys(months).length} months`);
+  updateBkCount();
+  buildPills();
+  renderAll();
+}
+
+function updateBkCount(){
+  const autoDisplay = document.getElementById('bk-auto-display');
+  const autoVal     = document.getElementById('bk-auto-val');
+  const manualLbl   = document.getElementById('bk-manual-lbl');
+  const bkInp       = document.getElementById('bk-inp');
+  if(!bkData||!curMonth){
+    if(autoDisplay) autoDisplay.style.display='none';
+    if(manualLbl)   manualLbl.textContent='or enter manually:';
+    return;
+  }
+  const monthData = bkData.months[curMonth];
+  if(monthData){
+    // Auto mode — use the count from the file
+    bk = monthData.count;
+    if(autoDisplay){ autoDisplay.style.display='flex'; autoVal.textContent=bk.toLocaleString(); }
+    if(manualLbl)   manualLbl.textContent='override:';
+    if(bkInp)       bkInp.value=bk; // also set manual input so it stays in sync
+  } else {
+    bk = parseInt(bkInp.value)||0;
+    if(autoDisplay){ autoDisplay.style.display='none'; }
+    if(manualLbl)   manualLbl.textContent='not in bookings file — enter manually:';
+  }
+}
+
+// ── R&R EXCEL PROCESSING (new column structure: row 1 headers, data from row 2)
+// Case ID | Customer | Channel | Case type | Sub case type | Status | Priority
+// Key account | Assigned | Issue description | Status update | Blocked by
+// Property ID | Property name | Region | MSP | Booking ref | Third party ref
+// Case value | GEL funded | Owner funded | Guest recovered | Exposure | Funds status
+// Approval status | Resolved satisfactorily | Reopened | Times reopened
+// Check in | Check out | Opened | Resolved | Last updated | Working days open
+// Linked reviews | Logged by | Last edited by | Source
+
+function processRR(ws, filename, type){
+  const raw2d = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  // Build col index map from actual headers (row 0) — robust to column reordering
+  const hdrs = raw2d[0].map(h=>String(h).trim().toLowerCase());
+  const ci = name => hdrs.findIndex(h=>h===name.toLowerCase());
+
+  const C={
+    caseId:      ci('case id'),
+    caseType:    ci('case type'),
+    subCaseType: ci('sub case type'),
+    status:      ci('status'),
+    priority:    ci('priority'),
+    keyAccount:  ci('key account'),
+    statusUpdate:ci('status update'),
+    blockedBy:   ci('blocked by'),
+    propName:    ci('property name'),
+    region:      ci('region'),
+    msp:         ci('msp'),
+    caseValue:   ci('case value'),
+    gelFunded:   ci('gel funded'),
+    ownerFunded: ci('owner funded'),
+    guestRec:    ci('guest recovered'),
+    fundsStatus: ci('funds status'),
+    resolvedSat: ci('resolved satisfactorily'),
+    opened:      ci('opened'),
+    resolvedDate:ci('resolved'),
+    workingDays:   ci('working days open'),
+    issueDesc:     ci('issue description'),
+  };
+
+  const pv = v=>{ if(typeof v==='number')return v; return parseFloat(String(v||'').replace(/[$,~\s]/g,''))||0; };
+  const months={};
+
+  for(let i=1;i<raw2d.length;i++){
+    const r=raw2d[i];
+    const caseId=String(r[C.caseId]||'').trim();
+    if(!caseId)continue;
+
+    const caseType    = String(r[C.caseType]||'').trim();
+    const subCaseType = String(r[C.subCaseType]||'').trim();
+    const status      = String(r[C.status]||'').trim();
+    const priority    = String(r[C.priority]||'').trim().toLowerCase();
+    const keyAccount  = String(r[C.keyAccount]||'').trim().toLowerCase()==='yes';
+    const statusUpdate= String(r[C.statusUpdate]||'').trim();
+    const blockedBy   = String(r[C.blockedBy]||'').trim();
+    const propName    = String(r[C.propName]||'').trim();
+    const region      = String(r[C.region]||'').trim();
+    const fundsStatus = String(r[C.fundsStatus]||'').trim();
+
+    const gelVal  = pv(r[C.gelFunded]);
+    const ownVal  = pv(r[C.ownerFunded]);
+    const recVal  = pv(r[C.guestRec]);
+    const workDays= pv(r[C.workingDays]);
+
+    const isGEL   = gelVal>0;
+    const isOwner = ownVal>0;
+    const isRec   = recVal>0;
+
+    const openedRaw = r[C.opened];
+    const cd = xlSerial(openedRaw);
+    if(!cd)continue;
+
+    const mk  = `${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}`;
+    const lbl = cd.toLocaleDateString('en-NZ',{month:'long',year:'numeric'});
+
+    const ct = caseType.toLowerCase();
+    const isClaim    = ct==='claim';
+    const isFeedback = ct==='feedback';
+    const isReview   = ct==='review escalation case';
+    const isCompleted= status.toLowerCase()==='completed';
+    const isPending  = !isCompleted;
+
+    if(!months[mk]) months[mk]={
+      label:lbl, total:0, claims:0, feedback:0, reviews:0,
+      resolved_claims:0, open_claims:0, open_days:[], closed_days:[], fb_closed_days:[],
+      key_account:0, high_priority:0,
+      gel_claims_val:0, gel_claims_count:0,
+      gel_fb_val:0,     gel_fb_count:0,
+      owner_val:0, owner_count:0, rec_val:0, rec_count:0,
+      gel_sub_types:{}, claim_sub_types:{}, fb_sub_types:{}, all_sub_types:{}, fb_region_issues:{},
+      sub_closed_days:{}, sub_open_days:{}, sub_open_count:{}, fb_sub_closed_days:{},
+      cleaning_issues:[], damage_issues:[], fb_issue_descs:{},
+      outstanding:[],
+      gel_fb_val:0,gel_fb_count:0, own_fb_val:0,own_fb_count:0, rec_fb_val:0,rec_fb_count:0,
+      fb_funds:{no_cost:0,total_with_cost:0,gel_only:0,own_only:0,rec_only:0,split:0,split_detail:[]},
+    };
+    const m=months[mk];
+    m.total++;
+    if(isClaim)    m.claims++;
+    if(isFeedback) m.feedback++;
+    if(isReview)   m.reviews++;
+    if(keyAccount) m.key_account++;
+    if(priority==='high') m.high_priority++;
+
+    // Issue description available for all case types
+    const issueDesc = String(r[C.issueDesc]||'').trim();
+
+    if(isClaim){
+      if(isCompleted) m.resolved_claims++;
+      if(isPending){
+        m.open_claims++;
+        if(workDays>0) m.open_days.push(workDays);
+        // Determine best reason: prefer blockedBy unless it's blank or literally "None"
+        const _by = blockedBy&&blockedBy.toLowerCase()!=='none'?blockedBy:'';
+        const _su = statusUpdate&&statusUpdate.toLowerCase()!=='none'?statusUpdate:'';
+        // Also check issue description as a last resort for context
+        const _issDesc = String(r[C.issueDesc]||'').trim();
+        const _reason_raw = blockedBy||statusUpdate||'';
+        // Build best reason from available data
+        let bestReason;
+        if(_by&&_su)       bestReason = _by+' — '+_su;
+        else if(_by)       bestReason = _by;
+        else if(_su)       bestReason = _su;
+        else if(_issDesc)  bestReason = 'Pending — '+_issDesc.slice(0,60)+((_issDesc.length>60)?'…':'');
+        else               bestReason = 'Pending — no update recorded';
+        console.log('[OUTSTANDING]',{caseId,prop:propName,blockedBy,statusUpdate,_by,_su,bestReason});
+        m.outstanding.push({id:caseId,prop:propName,region,
+          blockedBy:_by,statusUpdate:_su,reason:bestReason,
+          days:workDays,sub:subCaseType,desc:_issDesc});
+        if(subCaseType){
+          if(!m.sub_open_days[subCaseType]) m.sub_open_days[subCaseType]=[];
+          if(!m.sub_open_count[subCaseType]) m.sub_open_count[subCaseType]=0;
+          if(workDays>0) m.sub_open_days[subCaseType].push(workDays);
+          m.sub_open_count[subCaseType]++;
+        }
+      }
+      if(isCompleted&&workDays>0){
+        m.closed_days.push(workDays);
+        if(subCaseType){
+          if(!m.sub_closed_days[subCaseType]) m.sub_closed_days[subCaseType]=[];
+          m.sub_closed_days[subCaseType].push(workDays);
+        }
+      }
+      if(isGEL&&isCompleted){ m.gel_claims_val+=gelVal; m.gel_claims_count++; if(subCaseType) m.gel_sub_types[subCaseType]=(m.gel_sub_types[subCaseType]||0)+1; }
+      if(isOwner){ m.owner_val+=ownVal; m.owner_count++; }
+      if(isRec)  { m.rec_val+=recVal;   m.rec_count++;   }
+      if(subCaseType) m.claim_sub_types[subCaseType]=(m.claim_sub_types[subCaseType]||0)+1;
+      const subLower  = subCaseType.toLowerCase();
+      if(subLower==='additional cleaning/rubbish'&&issueDesc) m.cleaning_issues.push(issueDesc);
+      if(subLower==='damaged'&&issueDesc) m.damage_issues.push(issueDesc);
+    }
+
+    if(isFeedback){
+      if(isCompleted&&workDays>0){
+        m.fb_closed_days.push(workDays);
+        if(subCaseType){
+          if(!m.fb_sub_closed_days[subCaseType]) m.fb_sub_closed_days[subCaseType]=[];
+          m.fb_sub_closed_days[subCaseType].push(workDays);
+        }
+      }
+      // Track raw amounts from each column directly — don't guess split vs single payer
+      if(isGEL)   { m.gel_fb_val+=gelVal;  m.gel_fb_count++;  }
+      if(isOwner) { m.own_fb_val+=ownVal;  m.own_fb_count++;  }
+      if(isRec)   { m.rec_fb_val+=recVal;  m.rec_fb_count++;  }
+      // Categorise for the funding breakdown rows
+      const hasCost=isGEL||isOwner||isRec;
+      if(!hasCost){ m.fb_funds.no_cost++; }
+      else {
+        m.fb_funds.total_with_cost++;
+        // A case is "split" if more than one party paid
+        const payerCount=(isGEL?1:0)+(isOwner?1:0)+(isRec?1:0);
+        if(payerCount>1){
+          m.fb_funds.split++;
+          m.fb_funds.split_detail.push({
+            gel:isGEL?gelVal:0, owner:isOwner?ownVal:0, guest:isRec?recVal:0
+          });
+        }
+        if(payerCount===1){
+          if(isGEL)   m.fb_funds.gel_only++;
+          if(isOwner) m.fb_funds.own_only++;
+          if(isRec)   m.fb_funds.rec_only++;
+        }
+      }
+      if(subCaseType) m.fb_sub_types[subCaseType]=(m.fb_sub_types[subCaseType]||0)+1;
+      if(subCaseType&&issueDesc){
+        if(!m.fb_issue_descs[subCaseType]) m.fb_issue_descs[subCaseType]=[];
+        m.fb_issue_descs[subCaseType].push(issueDesc);
+      }
+      if(region){
+        if(!m.fb_region_issues[region]) m.fb_region_issues[region]={total:0,gel:0,gel_val:0,owner:0,sub_types:{}};
+        const ri=m.fb_region_issues[region];
+        ri.total++;
+        if(isGEL){ ri.gel++; ri.gel_val+=gelVal; }
+        if(isOwner) ri.owner++;
+        if(subCaseType) ri.sub_types[subCaseType]=(ri.sub_types[subCaseType]||0)+1;
+      }
+    }
+    if(subCaseType) m.all_sub_types[subCaseType]=(m.all_sub_types[subCaseType]||0)+1;
+  }
+
+  Object.values(months).forEach(m=>{
+    m.avg_claim_days = m.closed_days.length>0 ? Math.round(m.closed_days.reduce((a,b)=>a+b,0)/m.closed_days.length*10)/10 : 0;
+    m.avg_fb_days    = m.fb_closed_days.length>0 ? Math.round(m.fb_closed_days.reduce((a,b)=>a+b,0)/m.fb_closed_days.length*10)/10 : 0;
+    m.oldest         = m.open_days.length>0 ? Math.max(...m.open_days) : 0;
+    m.top_claim_sub  = Object.entries(m.claim_sub_types).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    m.fb_sub_resolution = {};
+    Object.entries(m.fb_sub_types).forEach(function([sub,total]){
+      const cd=m.fb_sub_closed_days[sub]||[];
+      m.fb_sub_resolution[sub]={total,resolved:cd.length,open:(m.fb_sub_types[sub]||0)-cd.length,avg_days:cd.length>0?Math.round(cd.reduce((a,b)=>a+b,0)/cd.length*10)/10:0};
+    });
+    // Per sub-type resolution stats
+    m.sub_resolution = {};
+    Object.entries(m.claim_sub_types).forEach(([sub,total])=>{
+      const cd = m.sub_closed_days[sub]||[];
+      const od = m.sub_open_days[sub]||[];
+      m.sub_resolution[sub]={
+        total,
+        resolved: cd.length,
+        open: m.sub_open_count[sub]||0,
+        avg_days: cd.length>0 ? Math.round(cd.reduce((a,b)=>a+b,0)/cd.length*10)/10 : 0,
+        oldest:   od.length>0 ? Math.max(...od) : 0,
+      };
+    });
+    m.top_fb_sub     = Object.entries(m.fb_sub_types).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    m.top_gel_sub    = Object.entries(m.gel_sub_types).sort((a,b)=>b[1]-a[1]);
+    m.top_all_sub    = Object.entries(m.all_sub_types).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    // Compat fields for existing dashboard panels
+    m.claims_funds   = {gel:m.gel_claims_count,gel_val:m.gel_claims_val,written_off:0,wo_val:0,owner:m.owner_count,own_val:m.owner_val,recovered:m.rec_count,rec_val:m.rec_val};
+    m.feedback_funds = {gel:m.gel_fb_count,gel_val:m.gel_fb_val,owner:m.own_fb_count,own_val:m.own_fb_val,split:m.fb_funds.split,spl_val:0,no_cost:m.fb_funds.no_cost};
+    m.avg_days       = m.avg_claim_days;
+    m.resolved_yes   = m.resolved_claims;
+    m.top3_damages   = m.top_claim_sub.slice(0,3);
+    m.all_issues     = m.top_fb_sub;
+    m.top5_issues    = m.top_all_sub;
+    m.outstanding_reasons = {};
+    m.outstanding.forEach(o=>{ const k=o.reason||'No reason'; m.outstanding_reasons[k]=(m.outstanding_reasons[k]||0)+1; });
+    m.funds          = {};
+    delete m.open_days; delete m.closed_days; delete m.fb_closed_days;
+  });
+
+  rrData={
+    generated:new Date().toISOString(), months,
+    month_list:Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>({key:k,label:v.label}))
+  };
+
+  const dzId=type==='can-rr'?'dz-can-rr':'dz-rr';
+  setDzStatus(dzId,'loaded',`✅ ${filename} — ${rrData.month_list.length} months loaded`);
+
+  document.getElementById('hdr-meta').textContent=
+    `R&R: ${filename} · ${new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'short',year:'numeric'})}`;
+
+  buildPills();
+  if(!curMonth&&rrData.month_list.length>0)
+    selectMonth(rrData.month_list.slice(-1)[0].key);
+  else renderAll();
+}
+
+// ── CANCELLATION PROCESSING ────────────────────────────────────────────────
+function xlDate(val){
+  if(typeof val==='number'&&val>40000&&val<70000)
+    return new Date(Date.UTC(1899,11,30)+val*86400000);
+  if(val instanceof Date&&!isNaN(val))return val;
+  if(typeof val==='string'&&val.trim()){
+    const p=val.trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if(p)return new Date(+p[3],+p[2]-1,+p[1]);
+    const d=new Date(val);return isNaN(d)?null:d;
+  }
+  return null;
+}
+// bauThresh now part of srcGroup block above
+function srcGroup(src){
+  const s=(src||'').toLowerCase().trim();
+  if(s.includes('vrbo')||s.includes('homeaway')||s.includes('holiday houses'))return'VRBO';
+  if(s.includes('booking.com'))return'Booking.com';
+  if(s.includes('airbnb'))return'Airbnb';
+  return'Bachcare'; // everything else is a Bachcare booking
+}
+function srcLabel(grp){return grp;} // no _OTHER prefix needed anymore
+function bauThresh(src){
+  const g=srcGroup(src);
+  if(g==='Booking.com')return 7;
+  if(g==='VRBO')return 14;
+  return 30; // Airbnb & Bachcare
+}
+// ── MONTH PILLS ────────────────────────────────────────────────────────────
+function buildPills(){
+  const seen={},list=[];
+  // Merge months from all uploaded files
+  const bkMonthList = bkData
+    ? Object.entries(bkData.months).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>({key:k,label:v.label}))
+    : [];
+  [rrData?.month_list, bkMonthList].forEach(src=>{
+    if(src)src.forEach(m=>{if(!seen[m.key]){seen[m.key]=1;list.push(m);}});
+  });
+  list.sort((a,b)=>a.key.localeCompare(b.key));
+  const wrap=document.getElementById('month-pills');
+  wrap.innerHTML='';
+  list.forEach(m=>{
+    const b=document.createElement('button');
+    b.className='mpill'+(m.key===curMonth?' active':'');
+    b.textContent=m.label;b.dataset.key=m.key;
+    b.onclick=()=>selectMonth(m.key);
+    wrap.appendChild(b);
+  });
+}
+function selectMonth(key){
+  curMonth=key;
+  document.querySelectorAll('.mpill').forEach(b=>b.classList.toggle('active',b.dataset.key===key));
+  updateBkCount(); // auto-fill from bookings file if available, else use manual input
+  renderAll();
+}
+document.getElementById('bk-inp').addEventListener('input',()=>{
+  bk=parseInt(document.getElementById('bk-inp').value)||0;
+  renderAll();
+});
+
+// ── DATE RANGE FILTER ─────────────────────────────────────────────────────
+let dateFrom=null, dateTo=null;
+
+function applyDateRange(){
+  const f=document.getElementById('dr-from').value;
+  const t=document.getElementById('dr-to').value;
+  dateFrom=f?new Date(f):null;
+  dateTo  =t?new Date(t+'T23:59:59'):null;
+  const active=dateFrom||dateTo;
+  document.getElementById('dr-clear').style.display=active?'':'none';
+  document.getElementById('dr-badge').style.display=active?'':'none';
+  // Rebuild pills from filtered data then re-render
+  buildPills();
+  renderAll();
+}
+function clearDateRange(){
+  dateFrom=null;dateTo=null;
+  document.getElementById('dr-from').value='';
+  document.getElementById('dr-to').value='';
+  document.getElementById('dr-clear').style.display='none';
+  document.getElementById('dr-badge').style.display='none';
+  buildPills();renderAll();
+}
+
+// Filter a row set by date range (uses .cd for cancellations, cd passed as param for RR)
+function inDateRange(d){
+  if(!d)return false;
+  if(dateFrom&&d<dateFrom)return false;
+  if(dateTo  &&d>dateTo)  return false;
+  return true;
+}
+
+// ── NARRATIVE ANALYSER ────────────────────────────────────────────────────
+// Reads an array of issue description strings, extracts keyword frequencies,
+// and builds a coherent narrative paragraph.
+
+function analyseIssues(descriptions, type, options){
+  if(!descriptions||descriptions.length===0)
+    return type==='cleaning'
+      ? 'No additional cleaning cases recorded this period.'
+      : type==='damage'
+      ? 'No damage cases recorded this period.'
+      : 'No feedback descriptions recorded this period.';
+
+  const CLEANING_THEMES={
+    'rubbish|garbage|waste|bin|trash':           'excess rubbish left by guests',
+    'stain|stained|staining':                    'staining to carpets, linen or surfaces',
+    'towel|linen|bedding|sheets':                'linen left in poor condition',
+    'bbq|barbeque|barbecue':                     'BBQ not cleaned',
+    'oven|stove|kitchen|grease|bench':           'kitchen not cleaned properly',
+    'bathroom|toilet|shower':                    'bathroom not cleaned properly',
+    'garage|external|outdoor|garden|yard':       'outdoor or garage areas left untidy',
+    'cobweb|dust|dusty|spider':                  'dust and cobwebs',
+    'food|leftovers':                            'food left in property',
+    'smell|odour|odor':                          'odour issues',
+  };
+  const DAMAGE_THEMES={
+    'furniture|chair|table|sofa|couch|lounge':              'furniture',
+    'glass|window|mirror|glazing':                          'glass or windows',
+    'door|handle|lock|hinge':                               'doors or entry points',
+    'wall|ceiling|floor|flooring|carpet':                   'walls, floors or surfaces',
+    'appliance|microwave|oven|dishwasher|fridge|washing':   'appliances',
+    'lamp|light|fixture|fitting':                           'lighting or fixtures',
+    'heat|burn|scorch|iron':                                'heat damage',
+    'stain|permanent':                                      'permanent staining',
+    'smash|smashed|broken|cracked|shattered':               'breakages',
+    'missing|stolen|removed|taken':                         'missing items',
+    'tv|television|screen|remote':                          'TV or entertainment equipment',
+  };
+  const FEEDBACK_THEMES_BY_SUBTYPE={
+    'Property Related Issue':{
+      'fridge|freezer|dishwasher|washing machine|dryer|microwave|appliance|not work|broken down|not working': 'appliances not working',
+      'hot water|heating|heat pump|air con|air conditioning|radiator|no heat|no hot water': 'hot water or heating issues',
+      'spa|pool|jacuzzi|hot tub': 'spa or pool issues',
+      'wifi|internet|tv|television|sky|streaming|netflix|connection': 'connectivity or entertainment',
+      'bed|mattress|pillow|sleep|comfort': 'bedroom comfort',
+      'toilet|shower|bath|bathroom|plumb|drain|leak|tap|water pressure': 'bathroom or plumbing',
+      'furniture|chair|table|couch|sofa|removed|missing|not there|taken away': 'missing or damaged furniture',
+      'smell|odour|mould|mold|damp|musty|pest|insect|mouse|rat|bug': 'property condition',
+      'outdoor|deck|bbq|garden|outside': 'outdoor areas or facilities',
+      'safety|hazard|unsafe|carbon|smoke alarm|risk|danger': 'health and safety',
+    },
+    'Service Related Issue':{
+      'clean|dirty|dust|cobweb|stain|rubbish|mess|not cleaned|poorly cleaned|cleaning standard': 'cleaning standard not met',
+      'access|key|lock|lockbox|code|entry|door|could not get in|couldnt get in|check in|check-in': 'access or check-in issue',
+      'not ready|not prepared|not set up|towel|linen|supply|stock|missing amenities|welcome': 'property not ready on arrival',
+      'msp|cleaner|housekeeper|late|delay|response|slow|no contact|follow up|follow-up': 'MSP response or communication',
+      'maintenance|repair|reported|not fixed|still broken|outstanding': 'maintenance not actioned by MSP',
+    },
+    'Internal':{
+      'listing|advertis|photo|description|inaccurate|misleading|not as described|expectation|misrepresent': 'listing inaccuracy',
+      'communication|contact|response|reply|email|phone|no reply|not respond|ignored|bachcare': 'Bachcare communication gap',
+      'booking|reservation|system|error|double book|cancel': 'booking or system issue',
+      'customer service|experience|unhappy|complaint|let down|disappoint|poor service': 'customer experience',
+      'price|refund|charge|overcharg|discount|compensation|credit': 'pricing or refund concern',
+    },
+  };
+  const FEEDBACK_THEMES_DEFAULT={
+    'clean|dirty': 'cleanliness',
+    'mainten|broken|fault': 'maintenance',
+    'access|key|lock': 'access',
+    'communication|response': 'communication',
+    'listing|description': 'listing',
+  };
+  const themes = type==='cleaning'?CLEANING_THEMES:type==='damage'?DAMAGE_THEMES:
+    (FEEDBACK_THEMES_BY_SUBTYPE[options&&options.subType]||FEEDBACK_THEMES_DEFAULT);
+  const themeHits={};
+  // Also collect example descriptions per theme for specificity
+  const themeExamples={};
+  const total=descriptions.length;
+
+  descriptions.forEach(function(desc){
+    const dl=desc.toLowerCase();
+    Object.entries(themes).forEach(function([pattern,label]){
+      if(pattern.split('|').some(function(kw){return dl.includes(kw);})){
+        themeHits[label]=(themeHits[label]||0)+1;
+        if(!themeExamples[label]) themeExamples[label]=[];
+        // Keep first 2 real examples per theme, truncated for readability
+        if(themeExamples[label].length<2){
+          const excerpt=desc.length>70?desc.slice(0,70).replace(/\s\w+$/,'')+'...':desc;
+          themeExamples[label].push(excerpt);
+        }
+      }
+    });
+  });
+
+  const sorted=Object.entries(themeHits).sort((a,b)=>b[1]-a[1]);
+  const topThemes=sorted.slice(0,4);
+  const hasThemes=topThemes.length>0;
+
+  if(type==='cleaning'){
+    if(!hasThemes)
+      return total+' additional cleaning case'+(total!==1?'s':'')+' this period. No common themes found in descriptions — review cases individually.';
+    const [topLabel, topCount]=topThemes[0];
+    const others=topThemes.slice(1,3).map(function([l]){return l;});
+    const topPct=Math.round(topCount/total*100);
+    let n=total+' additional cleaning case'+(total!==1?'s':'')+' this period. ';
+    n+=topLabel.charAt(0).toUpperCase()+topLabel.slice(1)+' was the most frequent issue ('+topCount+' case'+(topCount!==1?'s':'');
+    if(topPct>=50) n+=', '+topPct+'% of all cleaning cases)';
+    else n+=')';
+    if(others.length>0) n+=', alongside '+others.join(' and ');
+    n+='. ';
+    // Add a real example
+    const eg=themeExamples[topLabel]&&themeExamples[topLabel][0];
+    if(eg) n+='Example: "'+eg+'". ';
+    n+=topThemes.some(function([l]){return l.includes('rubbish');})?
+      'We are directing MSPs to photograph the property before the clean and raise a claim for any work beyond standard turnover.':
+      'We are directing MSPs to photo-document condition after checkout and raise a claim for any recoverable costs.';
+    return n;
+
+  } else if(type==='damage'){
+    if(!hasThemes)
+      return total+' damage case'+(total!==1?'s':'')+' this period. No common damage types found — review cases individually.';
+    const [topLabel, topCount]=topThemes[0];
+    const others=topThemes.slice(1,3).map(function([l]){return l;});
+    let n=total+' damage case'+(total!==1?'s':'')+' this period. ';
+    n+=topLabel.charAt(0).toUpperCase()+topLabel.slice(1)+' was the most common ('+topCount+' case'+(topCount!==1?'s':'');
+    if(others.length>0) n+='), with '+others.join(' and ')+' also recorded';
+    n+='. ';
+    // Add a real example for the top theme
+    const eg=themeExamples[topLabel]&&themeExamples[topLabel][0];
+    if(eg) n+='Example: "'+eg+'". ';
+    // High vs low impact
+    const high=sorted.filter(function([l]){return l.includes('glass')||l.includes('walls')||l.includes('doors')||l.includes('breakage');});
+    if(high.length>0) n+='Some high-impact damage in this group. ';
+    n+='We are directing MSPs to report all damage within 72 hours of checkout with photos. Earlier reporting gives us a stronger position and speeds up recovery.';
+    return n;
+
+  } else {
+    // Feedback
+    if(!hasThemes)
+      return total+' feedback case'+(total!==1?'s':'')+' this period. No common themes found in descriptions.';
+    const [topLabel]=topThemes[0];
+    const secondary=topThemes.slice(1,3).map(function([l]){return l;});
+    const hasMulti=topThemes.length>=3;
+    const has=function(kw){return sorted.some(function([l]){return l.includes(kw);});};
+
+    const subType=(options&&options.subType)||'';
+    let n=total+' case'+(total!==1?'s':'')+' this period. ';
+
+    if(subType==='Property Related Issue'){
+      n+='The main property issues raised were '+topLabel;
+      if(secondary.length>0) n+=', '+secondary.join(', ');
+      n+='. ';
+      if(hasMulti) n+='When guests encounter several property issues in one stay, the combined effect on their experience is greater than any single item. ';
+      if(has('appliances')||has('hot water')||has('connectivity')) n+='Appliance, heating, and connectivity faults are often known issues that can be pre-empted with regular property checks and prompt owner notification. ';
+      if(has('odour')||has('mould')||has('pest')) n+='Condition concerns around odour, mould or pests need owner attention and a remediation timeline before the next booking. ';
+      if(has('safety')) n+='Health and safety items in this group are being followed up with the relevant properties as a priority. ';
+      if(has('missing')||has('furniture')) n+='Where items are missing or removed, owners should be notified to replace or update the listing. ';
+      n+=hasMulti?'Getting the property into a consistently good condition before each arrival is the most direct way to reduce these cases.':'We are working through these with the relevant property owners.';
+    } else if(subType==='Service Related Issue'){
+      n+='The main service issues raised were '+topLabel;
+      if(secondary.length>0) n+=', '+secondary.join(', ');
+      n+='. ';
+      if(has('cleaning')) n+='Cleaning standard remains the highest-volume service concern and is addressed directly with the relevant MSP. Repeat occurrences at the same property trigger a quality review. ';
+      if(has('access')) n+='Access failures at arrival are high-impact and set the tone for the stay. MSPs are required to confirm entry is working after every turnover. ';
+      if(has('not ready')||has('MSP')) n+='Readiness and communication issues are followed up case by case, with escalation to a formal review for repeat concerns. ';
+      n+=hasMulti?'We are working with our MSP network to address these consistently across the portfolio.':'We are following up directly with the relevant MSPs.';
+    } else if(subType==='Internal'){
+      n+='The main internal issues raised were '+topLabel;
+      if(secondary.length>0) n+=', '+secondary.join(', ');
+      n+='. ';
+      if(has('listing')) n+='Listing inaccuracies are actioned immediately — incorrect descriptions or photos are updated and flagged to the owner. ';
+      if(has('communication')) n+='Communication gaps are reviewed as a team to identify where our process can be improved. ';
+      if(has('customer experience')) n+='Customer experience concerns are reviewed individually to understand what could have been handled differently. ';
+      n+='These are internal accountability items tracked separately for process improvement.';
+    } else {
+      n+='Main themes: '+topLabel;
+      if(secondary.length>0) n+=', '+secondary.join(', ');
+      n+='. We are working through these with the relevant teams.';
+    }
+    return n;
+  }
+}
+
+// ── REVIEWS PROCESSING ────────────────────────────────────────────────────
+function processReviews(ws, filename){
+  const raw2d = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  if(raw2d.length<2){ setDzStatus('dz-rev','err','File appears empty'); return; }
+  // Find header row
+  const KNOWN=['platform','sentiment','review'];
+  let hdrIdx=0;
+  for(let i=0;i<Math.min(raw2d.length,10);i++){
+    const r=raw2d[i].map(c=>String(c||'').toLowerCase());
+    if(KNOWN.filter(k=>r.some(c=>c.includes(k))).length>=2){ hdrIdx=i; break; }
+  }
+  const hdrs=raw2d[hdrIdx].map(c=>String(c||'').trim().toLowerCase());
+  const ci=n=>hdrs.findIndex(c=>c.includes(n));
+  const C={platform:ci('platform'),sentiment:ci('sentiment'),text:ci('review'),date:ci('date')};
+  const months={};
+  let total=0;
+  for(let i=hdrIdx+1;i<raw2d.length;i++){
+    const r=raw2d[i];
+    if(r.every(c=>c===''||c===null||c===undefined))continue;
+    const platform=String(r[C.platform]||'').trim();
+    const sentiment=String(r[C.sentiment]||'').trim().toLowerCase();
+    const text=String(r[C.text]||'').trim();
+    // Get date — from date column or try to find a date-like value
+    let d=null;
+    if(C.date>=0) d=xlSerial(r[C.date]);
+    if(!d){ for(let j=0;j<r.length;j++){ const v=xlSerial(r[j]); if(v){d=v;break;} } }
+    const mk=d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`:curMonth||'unknown';
+    const lbl=d?d.toLocaleDateString('en-NZ',{month:'long',year:'numeric'}):'Unknown period';
+    if(!months[mk]) months[mk]={label:lbl,pos:0,neu:0,neg:0,blank:0,total:0,platforms:{},texts:{pos:[],neg:[],neu:[]}};
+    const m=months[mk];
+    m.total++; total++;
+    const platKey=platform.toLowerCase().includes('airbnb')?'Airbnb':
+                  platform.toLowerCase().includes('booking')?'Booking.com':
+                  platform.toLowerCase().includes('vrbo')||platform.toLowerCase().includes('homeaway')?'VRBO':'Other';
+    if(!m.platforms[platKey]) m.platforms[platKey]={pos:0,neu:0,neg:0,blank:0,total:0};
+    const p=m.platforms[platKey];
+    const isBlank=!text||sentiment==='blank'||sentiment==='';
+    if(isBlank){ m.blank++; p.blank++; }
+    else if(sentiment.startsWith('pos')){ m.pos++; p.pos++; if(text) m.texts.pos.push(text); }
+    else if(sentiment.startsWith('neg')){ m.neg++; p.neg++; if(text) m.texts.neg.push(text); }
+    else { m.neu++; p.neu++; if(text) m.texts.neu.push(text); }
+    p.total++;
+  }
+  revData={months,filename,total};
+  setDzStatus('dz-rev','loaded',`✅ ${filename} — ${total.toLocaleString()} reviews loaded`);
+}
+
+// ── REPORT VIEW TOGGLE ─────────────────────────────────────────────────────
+let _reportView='preview';
+function setReportView(view){
+  _reportView=view;
+  const preview=document.getElementById('report-preview');
+  const plain=document.getElementById('report-out');
+  const btnP=document.getElementById('btn-preview');
+  const btnT=document.getElementById('btn-plain');
+  if(view==='preview'){
+    preview.style.display=''; plain.style.display='none';
+    btnP.style.background='rgba(255,255,255,.2)'; btnP.style.color='#fff'; btnP.style.borderColor='rgba(255,255,255,.3)';
+    btnT.style.background='transparent'; btnT.style.color='rgba(255,255,255,.5)'; btnT.style.borderColor='rgba(255,255,255,.2)';
+  } else {
+    preview.style.display='none'; plain.style.display='';
+    btnT.style.background='rgba(255,255,255,.2)'; btnT.style.color='#fff'; btnT.style.borderColor='rgba(255,255,255,.3)';
+    btnP.style.background='transparent'; btnP.style.color='rgba(255,255,255,.5)'; btnP.style.borderColor='rgba(255,255,255,.2)';
+  }
+}
+function clearReport(){
+  document.getElementById('report-out').value='';
+  document.getElementById('report-preview').innerHTML='<div class="ep-placeholder">Click Generate Report to see the formatted email preview</div>';
+}
+
+// ── EMAIL HTML RENDERER ────────────────────────────────────────────────────
+// Takes the structured report data and builds a formatted HTML email preview
+function renderEmailPreview(data){
+  const d=data.d, prev=data.prev, prevLabel=data.prevLabel;
+  const f$=data.f$, curBk=data.curBk, prevBk=data.prevBk;
+  const pct=(n,den)=>den>0?(n/den*100).toFixed(2)+'%':'N/A';
+  const pct1=(n,den)=>den>0?(n/den*100).toFixed(1)+'%':'N/A';
+  const b=s=>`<span class="ep-bold">${s}</span>`;
+
+  // ── Intro ────────────────────────────────────────────────────────────────
+  const claimRate=pct(d.claims,curBk);
+  const fbRate=pct(d.feedback,curBk);
+  const claimsUp=prev&&curBk>0&&prevBk>0&&(d.claims/curBk)>(prev.claims/prevBk);
+  const intro=`<p class="ep-intro">Hi team,</p>
+<p class="ep-intro">Please find below the Reputation &amp; Resolutions 4DX summary for ${d.label}. ${
+  data.introLine||'Please review the key metrics and trends below.'
+}</p>
+<hr class="ep-divider">`;
+
+  // ── Claims ───────────────────────────────────────────────────────────────
+  const prevClaimRate=prev&&prevBk>0?pct(prev.claims,prevBk):null;
+  const gelPct=pct1(d.gel_claims_count,d.resolved_claims||1);
+  const prevGelPct=prev?pct1(prev.gel_claims_count,prev.resolved_claims||1):null;
+
+  const gelSubBullets=(d.top_gel_sub||[]).map(([k,v])=>`<li>${v} ${k.toLowerCase()}</li>`).join('');
+
+  const outBullets=(d.outstanding||[]).length
+    ? (d.outstanding||[]).sort((a,b)=>(b.days||0)-(a.days||0))
+        .map(o=>'<li>'+(o.prop||o.id||'—')+': '+(o.reason||'Pending')+'</li>').join('')
+    : '<li>No outstanding cases at month end</li>';
+
+  // Sub-type resolution table
+  const subRes=d.sub_resolution||{};
+  const subRows=Object.entries(subRes).sort((a,b)=>b[1].total-a[1].total);
+  const subTblRows=subRows.map(([sub,s])=>`<tr>
+    <td>${sub}</td>
+    <td>${s.total}</td>
+    <td>${s.resolved}</td>
+    <td>${s.open}</td>
+    <td>${s.avg_days>0?s.avg_days+'d':'—'}</td>
+    <td>${s.oldest>0?s.oldest+'d':'—'}</td>
+  </tr>`).join('');
+
+  const claimsHtml=`
+<p class="ep-section">CLAIMS</p>
+<p class="ep-subsection">Volume</p>
+<p class="ep-body">Of ${curBk>0?curBk.toLocaleString():'{enter booking volume}'} check ins in ${d.label}, ${b(d.claims+' claims')} were created, giving us a claims rate of ${b(curBk>0?claimRate:'N/A')}${prevClaimRate?', up from '+prevClaimRate+' in '+prevLabel:''}. ${prev&&prev.claims?'It is worth noting that '+prevLabel+' saw '+prev.claims+' claims'+(prevBk>0?' from '+prevBk.toLocaleString()+' check ins':'')+'.':''}</p>
+<p class="ep-subsection">GEL Resolution</p>
+<p class="ep-body">${b(d.gel_claims_count+' claims ('+gelPct+')')} of resolved claims were funded through GEL, broken down as follows:</p>
+<ul>${gelSubBullets||'<li>No GEL sub-categories recorded</li>'}</ul>
+${prevGelPct?'<p class="ep-body">This compares to '+prevGelPct+' in '+prevLabel+' ('+prev.gel_claims_count+' GEL-funded claims of '+prev.resolved_claims+' resolved).</p>':''}
+<p class="ep-subsection">Outstanding Cases</p>
+<p class="ep-body">${data.outLines&&data.outLines!=='No outstanding claims at month end.'?
+  (d.outstanding.length+' case'+(d.outstanding.length!==1?'s':'')+' remain open at month end. Summary below.')
+  :'No outstanding cases at month end.'}</p>
+${(function(){if(!data.outLines||data.outLines==='No outstanding claims at month end.')return'';
+  const lines=data.outLines.split('\n').filter(function(l){return l.trim();});
+  const bullets=lines.map(function(l){return'<li>'+l.trim()+'</li>';}).join('');
+  return'<ul>'+bullets+'</ul>';})()}
+<p class="ep-subsection">Resolution Speed</p>
+<p class="ep-body">Resolved claims: ${b(String(d.resolved_claims))} | Pending: ${b(String(d.open_claims))}<br>
+${(()=>{const avg=d.avg_claim_days||0,pAvg=prev?(prev.avg_claim_days||0):0;let s='Overall average: '+b(avg>0?avg+' days':'No data');if(pAvg>0)s+=', compared to '+pAvg+' days in '+prevLabel;if(avg>0&&pAvg>0&&avg>pAvg*1.5)s+='. The increase reflects cases requiring extended negotiation or third-party coordination';return s;})()}</p>
+<p style="font-weight:700;margin:10px 0 4px">Claims — by type</p>
+<table><thead><tr><th>Sub-type</th><th>Cases</th><th>Avg to close</th><th>Prior month</th><th>Open</th></tr></thead><tbody>
+${['Damaged','Additional Cleaning/Rubbish','Missing Item'].map(function(sub){const s=(d.sub_resolution||{})[sub];if(!s)return'';const pS=prev&&prev.sub_resolution?prev.sub_resolution[sub]:null;return'<tr><td>'+sub+'</td><td>'+s.total+'</td><td>'+(s.avg_days>0?s.avg_days+'d':'—')+'</td><td>'+(pS&&pS.avg_days>0?pS.avg_days+'d':'—')+'</td><td>'+(s.open>0?b(String(s.open)):'—')+'</td></tr>';}).join('')}
+</tbody></table>
+${(function(){
+  if(!data.slowLines)return'';
+  const lines=data.slowLines.split('\n').filter(function(l){return l.trim();});
+  if(!lines.length)return'';
+  return'<p style="font-weight:700;margin:8px 0 4px">Cases open beyond 72 hours — by reason</p><ul>'+
+    lines.map(function(l){return'<li>'+l.trim()+'</li>';}).join('')+'</ul>';
+})()}
+
+
+<p class="ep-subsection">Write Offs</p>
+<p class="ep-body">${(()=>{const gelS=d.gel_claims_val||0,recS=d.rec_val||0,ownS=d.owner_val||0;let s=b(f$(gelS))+" absorbed through GEL in "+d.label;if(prev&&prev.gel_claims_val>0)s+=", compared to "+f$(prev.gel_claims_val)+" in "+prevLabel;s+=". ";if(ownS>0)s+="Owner contribution: "+b(f$(ownS))+" across "+d.owner_count+" case"+(d.owner_count!==1?"s":"")+". ";else s+="Owner shortfall minimal. ";if(recS>0){s+=b(f$(recS))+" recovered from guests. ";if(recS>gelS)s+="Guest recovery exceeded GEL spend this period. ";}return s;})()}</p>
+<p class="ep-subsection">Cleaning Trends</p>
+<p class="ep-body">${data.cleaningNarrative||'No additional cleaning cases recorded this period.'} We pursue recovery on any clean over one hour. Guest response times vary, but we follow through on all eligible cases.</p>
+<p class="ep-subsection">Damage Focus Areas for MSPs</p>
+<p class="ep-body">${data.damageNarrative||'No damage cases recorded this period.'} Report all damage within 72 hours of checkout. More detail and photos means a faster claim and a better recovery position.</p>`;
+
+  // ── Feedback ─────────────────────────────────────────────────────────────
+  const prevFbRate=prev&&prevBk>0?pct(prev.feedback,prevBk):null;
+  const ff=d.fb_funds||{};
+  const splitDetails=ff.split_detail||[];
+  const splitGEL=splitDetails.reduce((s,x)=>s+(x.gel||0),0);
+  const splitOwn=splitDetails.reduce((s,x)=>s+(x.owner||0),0);
+  const splitGuest=splitDetails.reduce((s,x)=>s+(x.guest||0),0);
+
+  const fbFundRows=[
+    ff.gel_only>0 ? `<li>Bachcare (GEL) only: ${b(ff.gel_only+' case'+(ff.gel_only!==1?'s':'')+' ('+f$(d.gel_fb_val-splitGEL)+')')}</li>` : '',
+    ff.own_only>0 ? `<li>Owner only: ${b(ff.own_only+' case'+(ff.own_only!==1?'s':'')+' ('+f$(d.own_fb_val-splitOwn)+')')}</li>` : '',
+    ff.rec_only>0 ? `<li>Guest recovery only: ${b(ff.rec_only+' case'+(ff.rec_only!==1?'s':'')+' ('+f$(d.rec_fb_val-splitGuest)+')')}</li>` : '',
+    ff.split>0 ? `<li>Split across parties: ${b(ff.split+' case'+(ff.split!==1?'s':'')+' — Bachcare: '+f$(splitGEL)+(splitOwn>0?', Owner: '+f$(splitOwn):'')+(splitGuest>0?', Guest: '+f$(splitGuest):''))}</li>` : '',
+    `<li>No compensation required: ${ff.no_cost||0} cases</li>`,
+  ].filter(Boolean).join('');
+
+  const fbIssueBullets=(d.top_fb_sub||[]).map(([k,v])=>`<li>${b(k)}: ${v} case${v!==1?'s':''}</li>`).join('');
+
+  const feedbackHtml=`
+<p class="ep-section">FEEDBACK</p>
+<p class="ep-subsection">Volume</p>
+<p class="ep-body">Of ${curBk>0?curBk.toLocaleString():'{enter booking volume}'} check ins in ${d.label}, ${b(d.feedback+' feedback cases')} were raised, giving us a rate of ${b(curBk>0?fbRate:'N/A')}${prevFbRate?', compared to '+prevFbRate+' in '+prevLabel:''}. Average resolution time was ${b(d.avg_fb_days>0?d.avg_fb_days+' days':'not yet available')}.</p>
+<p class="ep-subsection">Funding Breakdown</p>
+<ul>${fbFundRows}</ul>
+${d.gel_fb_val>0?'<p class="ep-body">Total Bachcare (GEL) exposure: '+b(f$(d.gel_fb_val))+'. '+(d.own_fb_val>0?'Total owner contribution: '+b(f$(d.own_fb_val))+'.':'')+(d.rec_fb_val>0?' Total recovered from guests: '+b(f$(d.rec_fb_val))+'.':'')+'</p>':''}
+<p class="ep-subsection">Resolution Speed — by responsibility</p>
+<table><thead><tr><th>Sub-type</th><th>Responsible</th><th>Cases</th><th>Avg to close</th><th>Prior month</th></tr></thead><tbody>
+${[['Property Related Issue','Owner'],['Service Related Issue','MSP'],['Internal','Bachcare']].map(function([sub,owner]){const s=(d.fb_sub_resolution||{})[sub];if(!s)return'';const pS=prev&&prev.fb_sub_resolution?prev.fb_sub_resolution[sub]:null;return'<tr><td>'+sub+'</td><td>'+owner+'</td><td>'+s.total+'</td><td>'+(s.avg_days>0?s.avg_days+'d':'—')+'</td><td>'+(pS&&pS.avg_days>0?pS.avg_days+'d':'—')+'</td></tr>';}).join('')}
+</tbody></table>
+<p class="ep-subsection">Issues Raised</p>
+${(data.fbSubWithSuggestionsArr||[]).map(function([issue,count,narrative,trend,flag]){
+  return '<p class="ep-body"><strong>'+issue+'</strong>: '+b(count+' case'+(count!==1?'s':''))+trend+flag+'</p>'+
+         '<p class="ep-body">'+narrative+'</p>';
+}).join('')}
+<p class="ep-subsection">Summary</p>
+<p class="ep-body">${data.fbTrendNarrative||''}</p>`;
+
+  // ── Reviews ───────────────────────────────────────────────────────────────
+  let reviewsHtml='';
+  const rv=revData&&curMonth&&revData.months[curMonth];
+  if(rv){
+    const PLATS=['Airbnb','Booking.com','VRBO'];
+    const pctPos=rv.total>0?(rv.pos/rv.total*100).toFixed(1)+'%':'—';
+    const pctNeg=rv.total>0?(rv.neg/rv.total*100).toFixed(1)+'%':'—';
+    const tblHdrs='<tr><th>Sentiment</th>'+PLATS.map(p=>'<th>'+p+'</th>').join('')+'<th>Total</th></tr>';
+    const mkRow=(lbl,key)=>'<tr><td>'+lbl+'</td>'+PLATS.map(p=>{const pp=rv.platforms[p]||{};return'<td>'+(pp[key]||0)+'</td>';}).join('')+'<td>'+(rv[key]||0)+'</td></tr>';
+    const totRow='<tr><td><strong>Total</strong></td>'+PLATS.map(p=>{const pp=rv.platforms[p]||{};return'<td><strong>'+(pp.total||0)+'</strong></td>';}).join('')+'<td><strong>'+rv.total+'</strong></td></tr>';
+    reviewsHtml=`
+<p class="ep-section">REVIEWS</p>
+<p class="ep-subsection">Volume and Sentiment</p>
+<p class="ep-body">A total of ${b(rv.total.toLocaleString()+' reviews')} were recorded in ${d.label} across all platforms. These reviews are pulled and recorded manually by the team on a weekly basis. Please note this figure may not fully reflect all ${d.label} check ins, as certain platforms allow guests up to 90 days to leave a review after their stay.</p>
+<table><thead>${tblHdrs}</thead><tbody>${mkRow('Positive','pos')+mkRow('Neutral','neu')+mkRow('Negative','neg')+mkRow('Blank','blank')+totRow}</tbody></table>
+<p class="ep-body">Blank entries reflect either a guest who left no written comment or an instance where we have reviewed the guest on Airbnb without a corresponding guest review.</p>
+<p class="ep-body">The overall sentiment picture is ${rv.pos/rv.total>.5?'strong':'mixed'}. ${b(pctPos)} of reviews were positive, with negative reviews accounting for just ${b(pctNeg)} of total reviews received.</p>`;
+  }
+
+  // ── Sign off ──────────────────────────────────────────────────────────────
+  const signoff=`<p class="ep-subsection">Next Steps</p>
+<ol style="margin:4px 0 14px 20px;padding:0">${(function(){const steps=[];if(d.open_claims>0)steps.push("Follow up on "+b(String(d.open_claims))+" outstanding claim"+(d.open_claims!==1?"s":"")+" — oldest is "+b(d.oldest+"d")+" open.");if(prev&&curBk>0&&prevBk>0&&(d.claims/curBk)>(prev.claims/prevBk)*1.05)steps.push("Monitor claims rate — up from "+prevClaimRate+" in "+prevLabel+".");if(prev&&prev.gel_claims_val>0&&d.gel_claims_val>prev.gel_claims_val*1.15)steps.push("Review GEL spend drivers — "+b(f$(d.gel_claims_val))+" vs "+f$(prev.gel_claims_val)+" in "+prevLabel+". Share with RSM.");if(d.avg_claim_days>0&&prev&&prev.avg_claim_days>0&&d.avg_claim_days>prev.avg_claim_days*1.3)steps.push("Resolution time up to "+b(d.avg_claim_days+"d")+". Review extended cases.");if(d.top_gel_sub&&d.top_gel_sub[0]&&d.top_gel_sub[0][1]>=5)steps.push("Share "+d.top_gel_sub[0][0].toLowerCase()+" trend with MSP and RSM — "+b(String(d.top_gel_sub[0][1]))+" GEL-funded cases.");if(prev&&curBk>0&&prevBk>0&&(d.feedback/curBk)>(prev.feedback/prevBk)*1.05)steps.push("Feedback rate moved up — review properties with repeat mentions.");Object.entries(d.fb_sub_types||{}).sort((a,b)=>b[1]-a[1]).slice(0,2).forEach(function([sub,count]){const pC=(prev&&prev.fb_sub_types)?prev.fb_sub_types[sub]||0:0;if(count>10||(count>pC&&count>=5))steps.push(b(sub)+" ("+count+" cases) — prioritise repeat properties.");});const gelS=d.gel_claims_val||0,recS=d.rec_val||0;if(recS>0&&recS<gelS*0.5)steps.push("Guest recovery ("+f$(recS)+") below GEL spend ("+f$(gelS)+"). Chase recovery cases.");if(!steps.length)steps.push("No immediate escalations. Continue monitoring trends.");return steps.map(function(s){return"<li style=\"margin-bottom:4px\">"+s+"</li>";}).join("");})()}</ol>
+<p class="ep-sign">Please feel free to reach out if you have any questions on the above.<br><br>Thank you,<br><br>Janendra Kishan</p>`;
+
+  return intro+claimsHtml+feedbackHtml+reviewsHtml+signoff;
+}
+
+// ── REPORT GENERATOR ───────────────────────────────────────────────────────
+function generateReport(){
+  if(!rrData||!curMonth){
+    document.getElementById('report-out').value='⚠️ Upload the R&R Tracker and select a month first.';
+    return;
+  }
+  const d=rrData.months[curMonth];
+  if(!d){document.getElementById('report-out').value='No data for this month.';return;}
+  bk=parseInt(document.getElementById('bk-inp').value)||0;
+
+  // Prior month for comparisons
+  const monthKeys=rrData.month_list.map(m=>m.key).sort();
+  const curIdx=monthKeys.indexOf(curMonth);
+  const prevKey=curIdx>0?monthKeys[curIdx-1]:null;
+  const prev=prevKey?rrData.months[prevKey]:null;
+  const prevLabel=prev?prev.label:'prior month';
+
+  const f$=v=>'$'+v.toLocaleString('en-NZ',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pct=(n,den)=>den>0?(n/den*100).toFixed(2)+'%':'N/A';
+  const pct1=(n,den)=>den>0?(n/den*100).toFixed(1)+'%':'N/A';
+
+  // Booking counts — pull from bkData per month, not just the current bk value
+  const getBk = mk => (bkData&&bkData.months[mk]) ? bkData.months[mk].count : 0;
+  const curBk  = getBk(curMonth)||bk; // current month — from file or manual
+  const prevBk = prevKey ? getBk(prevKey) : 0; // prior month from bookings file
+
+  // ── CLAIMS ────────────────────────────────────────────────────────────────
+  // Claims rate = claims opened this month / check-ins this month
+  const claimRate    = pct(d.claims, curBk);
+  // Prior month rate uses prior month's own booking count
+  const prevClaimRate= (prev&&prevBk>0) ? pct(prev.claims, prevBk) : null;
+  // GEL % = GEL-funded completed claims / all resolved claims this month
+  const gelPct       = pct1(d.gel_claims_count, d.resolved_claims||1);
+  const prevGelPct   = prev ? pct1(prev.gel_claims_count, prev.resolved_claims||1) : null;
+
+  // GEL sub-type breakdown lines
+  const gelSubLines = d.top_gel_sub.length
+    ? d.top_gel_sub.map(([k,v])=>`   ${v} ${k.toLowerCase()}`).join('\n')
+    : '   No GEL-funded sub-categories recorded';
+
+  // Outstanding cases
+  const outList=(d.outstanding||[]).sort((a,b)=>(b.days||0)-(a.days||0));
+  const OUT_BUCKETS={'awg':{label:'Awaiting guest response or payment',keys:['guest','denied','pay','chased']},'awo':{label:'Awaiting owner decision or quote',keys:['owner','50/50','quote']},'awr':{label:'Awaiting repair, invoice or parts',keys:['repair','invoice','parts','contractor']},'awt':{label:'Third-party platform involvement',keys:['airbnb','booking.com','vrbo','platform']},'new':{label:'Recently opened, action in progress',keys:['initials','gel','aiming','new']}};
+  const outBuckets={};
+  outList.forEach(function(o){const r=(o.reason||'').toLowerCase();let m2=false;Object.entries(OUT_BUCKETS).forEach(function([key,cfg]){if(!m2&&cfg.keys.some(function(k){return r.includes(k);})){if(!outBuckets[key])outBuckets[key]={label:cfg.label,count:0};outBuckets[key].count++;m2=true;}});if(!m2){if(!outBuckets.other)outBuckets.other={label:'Under review / other',count:0};outBuckets.other.count++;}});
+  const oldest=outList[0];
+  const outLines=outList.length===0?'No outstanding claims at month end.':(function(){const bsum=Object.values(outBuckets).sort((a,b)=>b.count-a.count).map(function(b){return'   '+b.label+': '+b.count+' case'+(b.count!==1?'s':'');}).join('\n');let s=outList.length+' case'+(outList.length!==1?'s':'')+' remain open. Summary of reasons:\n'+bsum;if(oldest&&oldest.days>=14)s+='\n\n   Oldest: '+oldest.prop+' ('+oldest.days+' days) — '+oldest.reason;return s;})();
+
+  // Resolution speed — simplified per sub-type
+  const CLAIM_SUBS=['Damaged','Additional Cleaning/Rubbish','Missing Item'];
+  const subRes=d.sub_resolution||{};
+  const claimResLines=CLAIM_SUBS.map(function(sub){
+    const s=subRes[sub];if(!s)return null;
+    const pS=prev&&prev.sub_resolution?prev.sub_resolution[sub]:null;
+    let line='   '+sub+': '+s.total+' case'+(s.total!==1?'s':'')+' | avg '+(s.avg_days>0?s.avg_days+'d to close':'no closed cases');
+    if(pS&&pS.avg_days>0&&s.avg_days>0) line+=' ('+prevLabel+': '+pS.avg_days+'d)';
+    if(s.open>0) line+=' | '+s.open+' still open';
+    return line;
+  }).filter(Boolean).join('\n')||'   No claim sub-type data';
+  const FB_SUBS=[['Property Related Issue','Owner'],['Service Related Issue','MSP'],['Internal','Bachcare']];
+  const fbSubRes=d.fb_sub_resolution||{};
+  const fbResLines=FB_SUBS.map(function([sub,owner]){
+    const s=fbSubRes[sub];if(!s)return null;
+    const pS=prev&&prev.fb_sub_resolution?prev.fb_sub_resolution[sub]:null;
+    let line='   '+sub+' ('+owner+'): '+s.total+' case'+(s.total!==1?'s':'')+' | avg '+(s.avg_days>0?s.avg_days+'d to close':'no closed cases');
+    if(pS&&pS.avg_days>0&&s.avg_days>0) line+=' ('+prevLabel+': '+pS.avg_days+'d)';
+    if(s.open>0) line+=' | '+s.open+' still open';
+    return line;
+  }).filter(Boolean).join('\n')||'   No feedback sub-type data';
+  const resSpeedLines=claimResLines;
+
+  // Cases that took more than 72 hours (3 working days) — summarise why
+  const slowCases=(d.outstanding||[]).filter(o=>o.days>3);
+  const slowLines=(function(){if(!slowCases.length)return'';const sb={};slowCases.forEach(function(o){const r=(o.reason||'').toLowerCase();let m2=false;Object.entries(OUT_BUCKETS).forEach(function([key,cfg]){if(!m2&&cfg.keys.some(function(k){return r.includes(k);})){if(!sb[key])sb[key]={label:cfg.label,count:0,oldest:0};sb[key].count++;if((o.days||0)>sb[key].oldest)sb[key].oldest=o.days||0;m2=true;}});if(!m2){if(!sb.other)sb.other={label:'Under review / other',count:0,oldest:0};sb.other.count++;if((o.days||0)>sb.other.oldest)sb.other.oldest=o.days||0;}});return Object.values(sb).sort((a,b)=>b.count-a.count).map(function(b){return'   '+b.label+': '+b.count+' case'+(b.count!==1?'s':'')+' (oldest '+b.oldest+'d)';}).join('\n');})();
+
+  // Automated narrative from issue descriptions
+  const cleaningNarrative = analyseIssues(d.cleaning_issues||[],'cleaning');
+  const damageNarrative   = analyseIssues(d.damage_issues||[],'damage');
+  const cleaningCount     = (d.cleaning_issues||[]).length;
+  const damageCount       = (d.damage_issues||[]).length;
+
+  // Write-off context
+  const prevGELVal = prev?prev.gel_claims_val:0;
+
+  // ── FEEDBACK ──────────────────────────────────────────────────────────────
+  const fbRate    = pct(d.feedback, curBk);
+  const prevFbRate= (prev&&prevBk>0) ? pct(prev.feedback, prevBk) : null;
+  // Feedback funding — read directly from accumulated column totals
+  const fbGELcount  = d.gel_fb_count||0;
+  const fbGELval    = d.gel_fb_val||0;
+  const fbOwnCount  = d.own_fb_count||0;
+  const fbOwnVal    = d.own_fb_val||0;
+  const fbRecCount  = d.rec_fb_count||0;
+  const fbRecVal    = d.rec_fb_val||0;
+  const fbNoCost    = d.fb_funds.no_cost||0;
+  const fbSplit     = d.fb_funds.split||0;
+  const fbGelOnly   = d.fb_funds.gel_only||0;
+  const fbOwnOnly   = d.fb_funds.own_only||0;
+  const fbRecOnly   = d.fb_funds.rec_only||0;
+  const fbTotalCost = d.fb_funds.total_with_cost||0;
+  // Split detail — sum up what each party paid across split cases
+  const splitDetails= d.fb_funds.split_detail||[];
+  const splitGELtotal  = splitDetails.reduce((s,x)=>s+x.gel,0);
+  const splitOwnTotal  = splitDetails.reduce((s,x)=>s+x.owner,0);
+  const splitGuestTotal= splitDetails.reduce((s,x)=>s+x.guest,0);
+
+  const prevFbGELcount = prev?(prev.gel_fb_count||0):0;
+  const prevFbGELval   = prev?(prev.gel_fb_val||0):0;
+  const prevFbOwnCount = prev?(prev.own_fb_count||0):0;
+  const prevFbOwnVal   = prev?(prev.own_fb_val||0):0;
+  const prevFbNoCost   = prev?(prev.fb_funds.no_cost||0):0;
+  const prevFbSplit    = prev?(prev.fb_funds.split||0):0;
+
+  // Feedback issues
+  const fbIssues = d.top_fb_sub;
+  const fbIssueLines = fbIssues.length
+    ? fbIssues.map(([k,v])=>`   ${v} ${k}`).join('\n')
+    : '   No categorised feedback issues';
+
+  // Feedback trends summary
+  const fbSubSorted = Object.entries(d.fb_sub_types||{}).sort((a,b)=>b[1]-a[1]);
+  const prevFbSub   = prev?(prev.fb_sub_types||{}):{};
+  const totalFb     = d.feedback||1;
+  const trendLines = fbSubSorted.length ? fbSubSorted.map(function([issue,count]){
+    const prevCount = prevFbSub[issue]||0;
+    const pctOfFb   = totalFb>0?(count/totalFb*100).toFixed(0)+'%':'--';
+    let trend = '';
+    if(prev){
+      if(count>prevCount)      trend = ' (up from '+prevCount+' in '+prevLabel+')';
+      else if(count<prevCount) trend = ' (down from '+prevCount+' in '+prevLabel+')';
+      else                     trend = ' (same as '+prevLabel+')';
+    }
+    const flag = count>20?' 🔴 CONCERN':count>10?' 🟡 Watch':'';
+    return '   '+issue+': '+count+' case'+(count!==1?'s':'')+' ('+pctOfFb+')'+trend+flag;
+  }).join('\n') : '   No categorised feedback issues recorded this period';
+  const newIssues = prev ? fbSubSorted.filter(function([k]){return !prevFbSub[k];}).map(function([k,v]){return k+' ('+v+')';}) : [];
+  const resolvedIssues = prev ? Object.keys(prevFbSub).filter(function(k){return !(d.fb_sub_types||{})[k];}).map(function(k){return k+' ('+prevFbSub[k]+' last month)';}) : [];
+  // Per-issue type: build full narrative from actual issue descriptions using analyseIssues
+  // Sub case types to generate narratives for
+  const FB_NARRATIVE_TYPES=['Property Related Issue','Service Related Issue','Internal'];
+  const fbSubNarratives={};
+  FB_NARRATIVE_TYPES.forEach(function(subType){
+    const descs=(d.fb_issue_descs&&d.fb_issue_descs[subType])||[];
+    if(descs.length>0) fbSubNarratives[subType]=analyseIssues(descs,'feedback',{subType:subType});
+  });
+
+  // Build the full issues section text
+  const fbSubWithSuggestions = fbSubSorted.map(function([issue,count]){
+    const prevCount=prevFbSub[issue]||0;
+    const pctOfFb=totalFb>0?(count/totalFb*100).toFixed(0)+'%':'—';
+    let trend='';
+    if(prev){ if(count>prevCount) trend=' (up from '+prevCount+' in '+prevLabel+')'; else if(count<prevCount) trend=' (down from '+prevCount+' in '+prevLabel+')'; }
+    const prevCntForFlag=prevFbSub[issue]||0;
+    const rising=count>prevCntForFlag;
+    const flag=(count>20&&rising)?' 🔴':(count>20&&!rising)?' 🟡':(count>10&&rising)?' 🟡':'';
+    const narrative=fbSubNarratives[issue]||null;
+    // For sub types without description analysis, fall back to action guidance only
+    const FB_ACTION_FALLBACK={
+      'Cleaning':'Ensure MSP pre-check is completed before each arrival. Where guest-caused, raise as a claim.',
+      'Maintenance':'Log with the property owner immediately. If safety-related, escalate to RSM.',
+      'Amenities':'Test all key amenities as part of the pre-stay check.',
+      'Access':'Confirm lockbox code and entry process after every MSP visit.',
+      'Listing Error':'Update the listing immediately and flag to the owner.',
+      'H&S Issue':'Escalate to RSM and TL immediately. Arrange property inspection before next booking.',
+      'Communication':'Review communication log and identify the source of the gap.',
+      'Pre-stay Issue':'Strengthen the MSP pre-check protocol — pre-stay issues are entirely preventable.',
+    };
+    const fallback=FB_ACTION_FALLBACK[issue]||'Review individual case notes for recurring patterns.';
+    if(narrative)
+      return '   '+issue+': '+count+' case'+(count!==1?'s':'')+' ('+pctOfFb+')'+trend+flag+'\n\n'+
+             '   '+narrative+'\n';
+    else
+      return '   '+issue+': '+count+' case'+(count!==1?'s':'')+' ('+pctOfFb+')'+trend+flag+
+             '\n   '+fallback;
+  }).join('\n');
+
+
+  const fbTrendNarrative = (function(){
+    if(!fbSubSorted.length) return 'No categorised feedback was recorded this period.';
+    const top = fbSubSorted.slice(0,3).map(function([k,v]){return k.toLowerCase();});
+    const concern = fbSubSorted.filter(function([k,v]){return v>20;});
+    const watching = fbSubSorted.filter(function([k,v]){return v>10&&v<=20;});
+    const improving = prev ? fbSubSorted.filter(function([k,v]){return v<(prevFbSub[k]||0);}) : [];
+    let p = 'Feedback this period centres on '+top.join(', ')+'. ';
+    if(concern.length)
+      p += concern.map(function([k,v]){return k;}).join(' and ')+' is elevated and will get focused attention next month. ';
+    if(watching.length)
+      p += watching.map(function([k,v]){return k;}).join(' and ')+' is worth monitoring. ';
+    if(improving.length)
+      p += improving.map(function([k,v]){return k;}).join(' and ')+' improved on '+prevLabel+'. ';
+    if(newIssues.length)
+      p += 'New this month: '+newIssues.join(', ')+'. ';
+    if(resolvedIssues.length)
+      p += 'Gone from last month: '+resolvedIssues.join(', ')+'. ';
+    if(!concern.length&&!watching.length)
+      p += 'Nothing sits outside normal range this period.';
+    return p;
+  })();
+
+  const report=`CLAIMS
+
+Volume
+Of ${curBk>0?curBk.toLocaleString():'{enter booking volume}'} check ins in ${d.label}, ${d.claims} claims were created, giving us a claims rate of ${curBk>0?claimRate:'N/A (enter booking volume)'}${prevClaimRate?' compared to '+prevClaimRate+' in '+prevLabel:''}.${prev&&prev.claims?' It is worth noting that '+prevLabel+' saw '+prev.claims+' claims'+(prevBk>0?' from '+prevBk.toLocaleString()+' check ins':'')+'.':''}
+
+GEL Resolution
+${d.gel_claims_count} claim${d.gel_claims_count!==1?'s':''} (${gelPct} of resolved claims) were funded through GEL, broken down as follows:
+${gelSubLines}
+${prevGelPct?'This compares to '+prevGelPct+' in '+prevLabel+' ('+prev.gel_claims_count+' GEL-funded claims of '+prev.resolved_claims+' resolved).':''}
+${(()=>{if(!prev)return'';const curPct=d.resolved_claims>0?d.gel_claims_count/d.resolved_claims:0;const prePct=prev.resolved_claims>0?prev.gel_claims_count/prev.resolved_claims:0;const topSub=d.top_gel_sub&&d.top_gel_sub[0]?d.top_gel_sub[0][0].toLowerCase():'';if(curPct>prePct+0.05)return 'The increase reflects broader use of GEL to resolve eligible cases and close them efficiently'+(topSub?', with '+topSub+' the primary driver':'')+'.';else if(curPct<prePct-0.05)return 'The reduction reflects stronger cost recovery from guests and owners this period, with fewer cases requiring GEL to close.';else return 'GEL resolution rate is holding steady'+(topSub?', with '+topSub+' continuing as the main sub-type':'')+'.';})()}
+
+Outstanding Cases
+${outLines}
+
+Resolution Speed
+Resolved claims: ${d.resolved_claims} | Pending: ${d.open_claims}
+${(()=>{const avg=d.avg_claim_days||0,pAvg=prev?(prev.avg_claim_days||0):0;let s='Average resolution time: '+(avg>0?avg+' days':'No data');if(pAvg>0)s+=', compared to '+pAvg+' days in '+prevLabel;if(avg>0&&pAvg>0&&avg>pAvg*1.5)s+='. The increase reflects cases requiring extended negotiation or third-party coordination';return s;})()}
+
+Claims — by type:
+${claimResLines}${slowCases.length?'\n\nCases open beyond 72 hours — by reason:\n'+slowLines:''}
+
+Write Offs
+${(()=>{
+  const gelS=d.gel_claims_val||0,recS=d.rec_val||0,ownS=d.owner_val||0;
+  let s=f$(gelS)+' absorbed through GEL in '+d.label;
+  if(prev&&prev.gel_claims_val>0) s+=', compared to '+f$(prev.gel_claims_val)+' in '+prevLabel;
+  s+='. ';
+  if(ownS>0) s+='Owner contribution: '+f$(ownS)+' across '+d.owner_count+' case'+(d.owner_count!==1?'s':'')+'. ';
+  else s+='Owner shortfall minimal. ';
+  if(recS>0){ s+=f$(recS)+' recovered from guests'; if(prev&&prev.rec_val>0) s+=', compared to '+f$(prev.rec_val)+' in '+prevLabel; s+='. '; if(recS>gelS) s+='Guest recovery exceeded GEL spend this period. '; }
+  const tGS=(d.top_gel_sub||[]).slice(0,3);if(tGS.length){const pGS=prev?(prev.gel_claims_val||0):0;if(gelS>pGS*1.2)s+=' The increase is driven primarily by '+tGS.map(([k,v])=>v+' '+k.toLowerCase()).join(', ')+'.';else if(gelS<pGS*0.8)s+=' The reduction reflects fewer eligible claims this period.';else s+=' The main contributors were '+tGS.map(([k])=>k.toLowerCase()).join(', ')+'.';}
+  return s;
+})()}
+
+Cleaning Trends
+${cleaningCount>0?cleaningNarrative:'No additional cleaning cases recorded this period.'} We pursue recovery on any clean over one hour. Guest response times vary so recovery can take time, but we follow through on all eligible cases.
+
+Damage Focus Areas for MSPs
+${damageCount>0?damageNarrative:'No damage cases recorded this period.'} Report all damage within 72 hours of checkout. More detail and photos means a faster claim and a better recovery position.
+
+FEEDBACK
+
+Volume
+Of ${curBk>0?curBk.toLocaleString():'{enter booking volume}'} check ins in ${d.label}, ${d.feedback} feedback cases were raised, giving us a rate of ${curBk>0?fbRate:'N/A'}${prevFbRate?', compared to '+prevFbRate+' in '+prevLabel+(prevBk>0?' ('+prev.feedback+' cases from '+prevBk.toLocaleString()+' check ins)':''):''}.  Average resolution time was ${d.avg_fb_days>0?d.avg_fb_days+' days':'not yet available'}.
+
+Funding Breakdown
+${fbGelOnly>0?'Bachcare (GEL) only: '+fbGelOnly+' case'+(fbGelOnly!==1?'s':'')+' ('+f$(fbGELval-splitGELtotal)+')':''}
+${fbOwnOnly>0?'Owner only: '+fbOwnOnly+' case'+(fbOwnOnly!==1?'s':'')+' ('+f$(fbOwnVal-splitOwnTotal)+')':''}
+${fbRecOnly>0?'Guest recovery only: '+fbRecOnly+' case'+(fbRecOnly!==1?'s':'')+' ('+f$(fbRecVal-splitGuestTotal)+')':''}
+${fbSplit>0?'Split across parties: '+fbSplit+' case'+(fbSplit!==1?'s':'')+' — Bachcare (GEL): '+f$(splitGELtotal)+(splitOwnTotal>0?', Owner: '+f$(splitOwnTotal):'')+(splitGuestTotal>0?', Guest recovered: '+f$(splitGuestTotal):''):''}
+No compensation required: ${fbNoCost} case${fbNoCost!==1?'s':''}
+${fbGELcount>0?'Total Bachcare (GEL) exposure across all cases: '+f$(fbGELval):''}
+${fbOwnCount>0?'Total owner contribution across all cases: '+f$(fbOwnVal):''}
+${fbRecCount>0?'Total recovered from guests across all cases: '+f$(fbRecVal):''}
+${prev?'For context, '+prevLabel+' saw '+prevFbGELcount+' cases with GEL contribution ('+f$(prevFbGELval)+'), '+prevFbOwnCount+' with owner contribution ('+f$(prevFbOwnVal)+')'+( prevFbSplit>0?', and '+prevFbSplit+' split across parties':'')+'.':''}
+
+Resolution Speed — by responsibility
+${fbResLines}
+
+Issues Raised and How to Address Them
+${fbSubWithSuggestions}
+
+Summary
+${fbTrendNarrative}
+
+NEXT STEPS
+${(()=>{
+  const steps=[];
+  if(d.open_claims>0) steps.push('Follow up on '+d.open_claims+' outstanding claim'+(d.open_claims!==1?'s':'')+' — oldest is '+d.oldest+' days open.');
+  if(prev&&curBk>0&&prevBk>0&&(d.claims/curBk)>(prev.claims/prevBk)*1.05) steps.push('Monitor claims rate — up from '+prevClaimRate+' in '+prevLabel+'. Watch as check-in volumes grow.');
+  if(prev&&prev.gel_claims_val>0&&d.gel_claims_val>prev.gel_claims_val*1.15) steps.push('Review GEL spend drivers ('+f$(d.gel_claims_val)+' vs '+f$(prev.gel_claims_val)+' in '+prevLabel+'). Share sub-type breakdown with RSM.');
+  if(d.avg_claim_days>0&&prev&&prev.avg_claim_days>0&&d.avg_claim_days>prev.avg_claim_days*1.3) steps.push('Resolution time up to '+d.avg_claim_days+'d ('+prevLabel+': '+prev.avg_claim_days+'d). Review extended cases.');
+  if(d.top_gel_sub&&d.top_gel_sub[0]&&d.top_gel_sub[0][1]>=5) steps.push('Share '+d.top_gel_sub[0][0].toLowerCase()+' trend with MSP and RSM — '+d.top_gel_sub[0][1]+' GEL-funded cases this period.');
+  if(prev&&curBk>0&&prevBk>0&&(d.feedback/curBk)>(prev.feedback/prevBk)*1.05) steps.push('Feedback rate moved up on '+prevLabel+'. Review properties with repeat mentions for owner conversations.');
+  Object.entries(d.fb_sub_types||{}).sort((a,b)=>b[1]-a[1]).slice(0,2).forEach(function([sub,count]){const pC=(prev&&prev.fb_sub_types)?prev.fb_sub_types[sub]||0:0;if(count>10||(count>pC&&count>=5))steps.push(sub+' ('+count+' cases) — review with relevant team, prioritise repeat properties.');});
+  const gelS=d.gel_claims_val||0,recS=d.rec_val||0;
+  if(recS>0&&recS<gelS*0.5) steps.push('Guest recovery ('+f$(recS)+') is well below GEL spend ('+f$(gelS)+'). Chase outstanding recovery cases.');
+  if(!steps.length) steps.push('No immediate escalations. Continue monitoring trends as check-in volumes grow.');
+  return steps.map(function(s,i){return (i+1)+'. '+s;}).join('\n');
+})()}`;
+
+  document.getElementById('report-out').value=report;
+  document.getElementById('report-out').removeAttribute('readonly');
+
+  const claimsUp=prev&&curBk>0&&prevBk>0&&(d.claims/curBk)>(prev.claims/prevBk);
+  const fbUp=prev&&curBk>0&&prevBk>0&&(d.feedback/curBk)>(prev.feedback/prevBk);
+  const absClaimsDown=prev&&d.claims<prev.claims;
+  const absFbDown=prev&&d.feedback<prev.feedback;
+  let introLine='Metrics and trends for '+d.label+' are below.';
+  if(prev){
+    if(claimsUp&&fbUp){
+      introLine=absClaimsDown?'Claim and feedback rates moved up on '+prevLabel+', though absolute volumes are lower due to fewer check-ins. The rate movement is worth monitoring as check-in volumes grow.':'Both claims rate and absolute volume moved up on '+prevLabel+'. Worth a closer look this period.';
+    } else if(!claimsUp&&!fbUp){
+      introLine='Claims rate and feedback rate both improved on '+prevLabel+(absClaimsDown?'. Absolute claim count also fell.':'.');
+    } else if(claimsUp){
+      introLine='Claims rate is up on '+prevLabel+(absClaimsDown?' though absolute claim count fell due to lower check-in volume':'')+'. Keeping an eye on the trend.';
+    } else {
+      introLine='Feedback rate is up on '+prevLabel+(absFbDown?' though absolute feedback count fell':'')+'. Claims are tracking well.';
+    }
+  }
+  // Build structured fbSubWithSuggestions for preview
+  const FB_SUGG_MAP={
+    'Cleaning':'Ensure MSP pre-check is completed before each arrival. Document condition with photos. Where guest-caused, raise as a claim.',
+    'Maintenance':'Log with property owner immediately. If safety-related, escalate to RSM. Confirm repair before next guest arrival.',
+    'Amenities':'Test all key amenities as part of the pre-stay check. Schedule a seasonal amenities audit for repeat issues.',
+    'Access':'Confirm lockbox code and entry process after every MSP visit. Run an access check as the final pre-stay step.',
+    'Listing Error':'Update the listing immediately and flag to the owner. High risk for platform-initiated refunds.',
+    'H&S Issue':'Escalate to RSM and TL immediately. Arrange property inspection before next booking.',
+    'Communication':'Review case communication log. Identify whether the gap is MSP, instructions, or a Bachcare process step.',
+    'Pre-stay Issue':'Strengthen the MSP pre-check protocol — pre-stay issues are entirely preventable.',
+    'Property Related Issue':'Review the specific property. Consider a condition report or owner conversation.',
+    'Service Related Issue':'Document the service gap and raise with the relevant MSP. If recurring, escalate for quality review.',
+  };
+  const _prevFbSub2=prev?(prev.fb_sub_types||{}):{};
+  // Build per-sub-type narratives for preview using same analyseIssues function
+  const _prevFbSub3=prev?(prev.fb_sub_types||{}):{};
+  const fbSubWithSuggestionsArr=Object.entries(d.fb_sub_types||{}).sort((a,b)=>b[1]-a[1]).map(function([issue,count]){
+    const prevCnt=_prevFbSub3[issue]||0;
+    const trend=prev?(count>prevCnt?' (up from '+prevCnt+')':count<prevCnt?' (down from '+prevCnt+')':''):'';
+    const prevCntForFlag=prevFbSub[issue]||0;
+    const rising=count>prevCntForFlag;
+    const flag=(count>20&&rising)?' 🔴':(count>20&&!rising)?' 🟡':(count>10&&rising)?' 🟡':'';
+    const descs2=(d.fb_issue_descs&&d.fb_issue_descs[issue])||[];
+    const narr=descs2.length>0?analyseIssues(descs2,'feedback',{subType:issue}):null;
+    const FB_ACT={'Cleaning':'Ensure MSP pre-check is completed. Where guest-caused, raise as a claim.','Maintenance':'Log with property owner immediately. If safety-related, escalate to RSM.','Amenities':'Test all key amenities as part of the pre-stay check.','Access':'Confirm lockbox code and entry process after every MSP visit.','Listing Error':'Update the listing immediately.','H&S Issue':'Escalate to RSM and TL immediately.','Communication':'Review communication log.','Pre-stay Issue':'Strengthen the MSP pre-check protocol.'};
+    const fallback=FB_ACT[issue]||'Review individual case notes for recurring patterns.';
+    return [issue,count,narr||fallback,trend,flag];
+  });
+
+
+  document.getElementById('report-preview').innerHTML=renderEmailPreview({
+    d,prev,prevLabel,curBk,prevBk,
+    f$:v=>'$'+v.toLocaleString('en-NZ',{minimumFractionDigits:2,maximumFractionDigits:2}),
+    introLine,cleaningNarrative,damageNarrative,fbTrendNarrative,
+    resSpeedLines,claimResLines,fbResLines,slowCases,slowLines,outLines,fbSubWithSuggestionsArr
+  });
+  setReportView('preview');
+}
+function copyReport(){
+  const ok=document.getElementById('copy-ok');
+  const showOk=()=>{if(ok){ok.style.display='inline';setTimeout(()=>ok.style.display='none',2200);}};
+  if(_reportView==='preview'){
+    const preview=document.getElementById('report-preview');
+    if(!preview||preview.querySelector('.ep-placeholder'))return;
+    try{
+      const blob=new Blob([preview.innerHTML],{type:'text/html'});
+      const plain=new Blob([preview.innerText],{type:'text/plain'});
+      navigator.clipboard.write([new ClipboardItem({'text/html':blob,'text/plain':plain})]).then(showOk).catch(()=>{
+        const range=document.createRange();range.selectNodeContents(preview);
+        const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+        document.execCommand('copy');sel.removeAllRanges();showOk();
+      });
+    }catch(e){
+      const range=document.createRange();range.selectNodeContents(document.getElementById('report-preview'));
+      const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+      document.execCommand('copy');sel.removeAllRanges();showOk();
+    }
+  } else {
+    const ta=document.getElementById('report-out');
+    if(!ta||!ta.value)return;
+    navigator.clipboard.writeText(ta.value).then(showOk).catch(()=>{ta.select();document.execCommand('copy');showOk();});
+  }
+}
+
+function renderAll(){renderRR();}
+
+// ══════════════════════════════════════════════════════════════════════════
+// CANCELLATION REPORT GENERATOR
+// ══════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════
+// GUEST SUPPORT RENDER — with clickable channel filter cards
+// ══════════════════════════════════════════════════════════════════════════
+
+// Active filter state: {channel: 'Booking.com'|null, mode: 'bau'|'oob'|null}
+// ══════════════════════════════════════════════════════════════════════════
+// R&R RENDER
+// ══════════════════════════════════════════════════════════════════════════
+function renderRR(){
+  const el=document.getElementById('rr-content');
+  if(!rrData||!curMonth)return;
+  const d=rrData.months[curMonth];
+  if(!d){el.innerHTML=`<div class="empty">No R&R data for this month.</div>`;return;}
+  bk=parseInt(document.getElementById('bk-inp').value)||0;
+
+  const GEL_ALL=Object.entries(d.funds).filter(([k])=>k==='GEL Funded').reduce((a,[,v])=>a+v,0);
+
+  el.innerHTML=`<div class="fade">
+    <div class="kpi-grid">
+      <div class="kpi c-navy"><div class="kpi-lbl">Total Cases</div><div class="kpi-val">${fN(d.total)}</div><div class="kpi-sub">All types this month</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">Claims</div><div class="kpi-val">${fN(d.claims)}</div><div class="kpi-sub">${bk>0?fP(d.claims,bk)+' of bookings':''}</div></div>
+      <div class="kpi c-blue"><div class="kpi-lbl">Feedback &amp; Reviews</div><div class="kpi-val">${fN(d.feedback)}</div><div class="kpi-sub">${bk>0?fP(d.feedback,bk)+' of bookings':''}</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">GEL Spend</div><div class="kpi-val" style="font-size:22px">${f$(d.claims_funds.gel_val+d.feedback_funds.gel_val)}</div><div class="kpi-sub">${fN(GEL_ALL)} cases</div></div>
+      <div class="kpi c-green"><div class="kpi-lbl">Guest Recovery</div><div class="kpi-val" style="font-size:22px">${f$(d.claims_funds.rec_val)}</div><div class="kpi-sub">${fN(d.claims_funds.recovered)} cases</div></div>
+      <div class="kpi c-teal"><div class="kpi-lbl">Resolved ✅</div><div class="kpi-val">${fN(d.resolved_yes)}</div><div class="kpi-sub">${fP(d.resolved_yes,d.total)} resolution rate</div></div>
+    </div>
+
+    <div class="itab active" id="itab-overview">${renderOverviewTab(d)}</div>
+    <div class="itab" id="itab-claims">${renderClaimsTab(d)}</div>
+    <div class="itab" id="itab-feedback">${renderFeedbackTab(d)}</div>
+    <div class="itab" id="itab-financial">${renderFinancialTab(d)}</div>
+  </div>`;
+
+  // Restore active tab
+  document.querySelectorAll('.itab').forEach(t=>t.classList.remove('active'));
+  const act=document.getElementById('itab-'+curItab);
+  if(act)act.classList.add('active');
+}
+
+// ── OVERVIEW TAB ──────────────────────────────────────────────────────────
+function renderOverviewTab(d){
+  // Top 5 trending issues
+  const top5=d.top5_issues||[];
+  const rankClass=['t1','t2','t3','',''];
+  const trendItems=top5.length?top5.map(([name,count],i)=>`
+    <div class="trend-item">
+      <div class="trend-rank ${rankClass[i]}">${i+1}</div>
+      <div class="trend-info">
+        <div class="trend-name">${name}</div>
+        <div class="trend-sub">${fP(count,d.total)} of all cases · ${tfl(count)}</div>
+      </div>
+      <div class="trend-count">${count}</div>
+    </div>`).join('')
+  :'<div style="color:var(--soft);font-size:12px;padding:8px 0">No issue data available</div>';
+
+  // Top 3 damage types MSPs should focus on
+  const dmg=d.top3_damages||[];
+  const dmgColorMap={'Damages':'var(--red)','Additional Cleaning':'var(--orange)','Missing Items':'var(--gold)'};
+  const dmgActionMap={
+    'Damages':'Photograph all existing damage before guest arrival — brief MSPs on pre-check-in inspection',
+    'Additional Cleaning':'Review MSP cleaning standards — audit properties with repeat cleaning complaints',
+    'Missing Items':'Implement post-stay inventory checklist — MSPs to confirm all items at checkout',
+  };
+  const dmgCards=dmg.length?dmg.map(([name,count],i)=>`
+    <div class="dmg-card" style="border-color:${dmgColorMap[name]||'var(--red)'}">
+      <div class="dmg-type" style="color:${dmgColorMap[name]||'var(--red)'}">${name}</div>
+      <div class="dmg-count">${count}</div>
+      <div class="dmg-val">${fP(count,d.claims)} of claims</div>
+      <div class="dmg-action">${dmgActionMap[name]||''}</div>
+    </div>`).join('')
+  :'<div style="color:var(--soft);font-size:12px">No damage type data</div>';
+
+  const savedRR=localStorage.getItem('rr-summary-'+curMonth)||'';
+
+  return`
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">🔥 Top 5 Trending Issues</div><span style="font-size:11px;color:var(--soft)">All case types</span></div>
+        <div class="pb">${trendItems}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel">
+          <div class="ph"><div class="pt">📊 Month Snapshot</div></div>
+          <div class="pb">
+            <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">% Bookings with Claims</div><div class="fval" style="color:var(--red)">${bk>0?fP(d.claims,bk):'Enter bookings ↑'}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--blue)"></div><div class="fname">% Bookings with Feedback</div><div class="fval" style="color:var(--blue)">${bk>0?fP(d.feedback,bk):'—'}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">GEL Total (Claims + Feedback)</div><div class="fval" style="color:var(--red)">${f$(d.claims_funds.gel_val+d.feedback_funds.gel_val)}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--green)"></div><div class="fname">Recovered from Guests</div><div class="fval" style="color:var(--green)">${f$(d.claims_funds.rec_val)}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--navy)"></div><div class="fname">Written Off (unrecovered)</div><div class="fval" style="color:var(--navy)">${f$(d.claims_funds.wo_val)}</div></div>
+            <div class="frow" style="border-bottom:none"><div class="fdot" style="background:var(--gold)"></div><div class="fname">Open Claims</div><div class="fval" style="color:var(--gold)">${fN(d.open_claims)} · avg ${d.avg_days}d</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sec">🔨 MSP Damage Focus — Top 3 Claim Types to Address</div>
+    <div class="dmg-grid full">${dmgCards}</div>
+    <div class="commentary-box">
+      <div class="commentary-header"><div class="pt">✏️ Monthly Issues Commentary</div><span style="font-size:11px;color:var(--soft)">Saved to your browser</span></div>
+      <div class="commentary-body">
+        <span class="commentary-label">What were the issues and challenges this month? (For leadership presentation)</span>
+        <textarea class="commentary-ta" id="rr-ta" placeholder="e.g. This month we managed ${d.total} cases across ${d.claims} claims and ${d.feedback} feedback cases. Key challenges included… The top trending issue was… GEL spend of ${f$(d.claims_funds.gel_val)} was driven by… Going forward we recommend…">${savedRR}</textarea>
+        <div style="margin-top:10px;display:flex;align-items:center">
+          <button class="save-btn" onclick="saveNote('rr','rr-ta',curMonth)">Save note</button>
+          <span class="save-ok" id="rr-ok">✅ Saved</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── CLAIMS TAB ─────────────────────────────────────────────────────────────
+function renderClaimsTab(d){
+  const reasons=d.outstanding_reasons||{};
+  const totOut=Object.values(reasons).reduce((a,b)=>a+b,0);
+  const rDesc={'MSP - More Info':'Waiting on MSP quote, photos or confirmation',
+    'MSP - Quote/ Book':'Quote requested — MSP to book contractor',
+    'Guest - No Response':'Guest contacted but has not replied',
+    'Guest - Push Back':'Guest is disputing — may need escalation',
+    'Owner - Need Response':'Awaiting owner decision or quote',
+    'Contractor - Booked':'Repair booked — awaiting invoice',
+    'Courier Pending (Ordered)':'Replacement ordered — awaiting delivery',
+    'New':'Recently opened — awaiting first action'};
+  const rHtml=Object.entries(reasons).sort((a,b)=>b[1]-a[1]).map(([s,c])=>`
+    <div class="out-item">
+      <div><div class="out-reason">${s}</div><div class="out-desc">${rDesc[s]||''}</div></div>
+      <div class="out-count">${c}</div>
+      <div class="out-pct">${fP(c,totOut)}</div>
+    </div>`).join('')||'<div style="color:var(--soft);font-size:12px;padding:8px 0">No outstanding claims.</div>';
+
+  return`
+    <div class="three" style="margin-bottom:18px">
+      <div class="kpi c-red"><div class="kpi-lbl">% Bookings w/ Claims</div><div class="kpi-val">${fP(d.claims,bk||1)}</div><div class="kpi-sub">${fN(d.claims)} claims</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">% Resolved via GEL</div><div class="kpi-val">${fP(d.claims_funds.gel,d.resolved_yes||1)}</div><div class="kpi-sub">${fN(d.claims_funds.gel)} of ${fN(d.resolved_yes)} resolved</div></div>
+      <div class="kpi c-gold"><div class="kpi-lbl">Open Claims</div><div class="kpi-val">${fN(d.open_claims)}</div><div class="kpi-sub">Avg ${d.avg_days} days · oldest ${d.oldest} days</div></div>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">⏳ Outstanding — Why Open?</div><span class="pill red">${fN(totOut)}</span></div>
+        <div class="pb">${rHtml}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="panel">
+          <div class="ph"><div class="pt">⏱ Age of Open Claims</div></div>
+          <div class="pb">
+            <div class="age-grid">
+              <div class="age-box"><div class="age-n">${d.avg_days}</div><div class="age-l">Avg days to close</div></div>
+              <div class="age-box"><div class="age-n warn">${d.oldest}</div><div class="age-l">Oldest open</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">❌ Write-offs &amp; Owner-Absorbed</div></div>
+          <div class="pb">
+            <div class="wb red">
+              <div class="wb-hdr"><div class="wb-lbl">❌ Funds Not Recovered</div><div class="wb-val">${f$(d.claims_funds.wo_val)}</div></div>
+              <div class="wb-desc">True business loss — never recovered. Review each case.</div>
+              <div class="wb-meta">${fN(d.claims_funds.written_off)} cases</div>
+            </div>
+            <div class="wb blue">
+              <div class="wb-hdr"><div class="wb-lbl">🏠 Owner Absorbed</div><div class="wb-val">${f$(d.claims_funds.own_val)}</div></div>
+              <div class="wb-desc">Owner funded — no GEL exposure but monitor relationship health.</div>
+              <div class="wb-meta">${fN(d.claims_funds.owner)} cases</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── FEEDBACK TAB ──────────────────────────────────────────────────────────
+function renderFeedbackTab(d){
+  const ff=d.feedback_funds||{};
+  const issues=d.all_issues||[];
+  const maxI=issues[0]?.[1]||1;
+  const iColors=['navy','red','gold','blue','teal','green','orange','navy','red','gold'];
+  const iHtml=issues.map(([k,v],i)=>`<div class="brow">
+    <div class="blbl" title="${k}">${k}</div>
+    <div class="btrack"><div class="bfill ${iColors[i%10]}" style="width:${v/maxI*100}%"></div></div>
+    <div class="bcnt">${v}</div>
+    <div class="bpct">${fP(v,d.feedback)}</div>
+    <div style="min-width:85px;text-align:right">${tfl(v)}</div>
+  </div>`).join('')||'<div style="color:var(--soft);font-size:12px">No categorised feedback.</div>';
+
+  return`
+    <div class="three" style="margin-bottom:18px">
+      <div class="kpi c-blue"><div class="kpi-lbl">% Bookings w/ Feedback</div><div class="kpi-val">${fP(d.feedback,bk||1)}</div><div class="kpi-sub">${fN(d.feedback)} cases</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl">GEL-Funded Feedback</div><div class="kpi-val">${fP(ff.gel||0,d.feedback||1)}</div><div class="kpi-sub">${fN(ff.gel||0)} cases · ${f$(ff.gel_val||0)}</div></div>
+      <div class="kpi c-blue"><div class="kpi-lbl">Owner Funded</div><div class="kpi-val">${fN(ff.owner||0)}</div><div class="kpi-sub">${f$(ff.own_val||0)}</div></div>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">💰 Feedback Funding</div></div>
+        <div class="pb">
+          <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">⚠️ We paid (GEL)</div><div class="fcnt">${fN(ff.gel||0)}</div><div class="fval" style="color:var(--red)">${f$(ff.gel_val||0)}</div></div>
+          <div class="frow"><div class="fdot" style="background:var(--blue)"></div><div class="fname">🏠 Owner paid</div><div class="fcnt">${fN(ff.owner||0)}</div><div class="fval" style="color:var(--blue)">${f$(ff.own_val||0)}</div></div>
+          <div class="frow"><div class="fdot" style="background:var(--gold)"></div><div class="fname">✂️ Split cost</div><div class="fcnt">${fN(ff.split||0)}</div><div class="fval" style="color:var(--gold)">${f$(ff.spl_val||0)}</div></div>
+          <div class="frow" style="border-bottom:none"><div class="fdot" style="background:var(--teal)"></div><div class="fname">💚 No compensation</div><div class="fcnt">${fN(ff.no_cost||0)}</div><div class="fval" style="color:var(--teal)">—</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt">🔍 Issues Raised</div></div>
+        <div class="pb">
+          ${iHtml}
+          <div style="margin-top:10px;font-size:10.5px;color:var(--soft)">🔴 Concern &gt;20 · 🟡 Watch 10–20 · 🟢 OK &lt;10</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── FINANCIAL TAB ─────────────────────────────────────────────────────────
+function renderFinancialTab(d){
+  const f=d.funds||{};
+  const rows=[
+    ['✅ Guest paid','green',f['Guest Payment Received']||0,d.claims_funds.rec_val],
+    ['🏠 Owner paid','blue',f['Owner Funded']||0,d.claims_funds.own_val],
+    ['⚠️ GEL absorbed','red',(f['GEL Funded']||0),d.claims_funds.gel_val+d.feedback_funds.gel_val],
+    ['✂️ Split','gold',f['Split - Advise in notes']||0,0],
+    ['💚 No cost','teal',f['No Funds Required']||0,0],
+    ['⏳ Pending','slate',f['Pending Recovery']||0,0],
+    ['❌ Written off','red',f['FUNDS NOT RECOVERED']||0,d.claims_funds.wo_val],
+    ['🔄 Airbnb refund','blue',f['Airbnb Guest Refund']||0,0],
+    ['🛡️ Aircover','green',f['Aircover Recovery']||0,0],
+  ];
+  const totC=rows.reduce((a,r)=>a+r[2],0);
+  const totV=rows.reduce((a,r)=>a+r[3],0);
+  const tblHtml=rows.map(([l,c,cnt,val])=>`<tr>
+    <td><span class="pill ${c==='slate'?'teal':c}">${l}</span></td>
+    <td class="n">${fN(cnt)}</td>
+    <td class="n">${f$(val)||'—'}</td>
+    <td class="n" style="color:var(--soft)">${totC>0?fP(cnt,totC):'—'}</td>
+  </tr>`).join('');
+
+  return`
+    <div class="two">
+      <div class="panel">
+        <div class="ph"><div class="pt">💰 Full Funds Status Breakdown</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Status</th><th style="text-align:right">Cases</th><th style="text-align:right">Value</th><th style="text-align:right">%</th></tr></thead>
+            <tbody>${tblHtml}</tbody>
+            <tfoot><tr><td style="font-weight:700">Total</td><td class="n">${fN(totC)}</td><td class="n">${f$(totV)}</td><td class="n">100%</td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="panel">
+          <div class="ph"><div class="pt">❌ Write-offs &amp; Owner Costs</div></div>
+          <div class="pb">
+            <div class="wb red">
+              <div class="wb-hdr"><div class="wb-lbl">❌ Funds Not Recovered</div><div class="wb-val">${f$(d.claims_funds.wo_val)}</div></div>
+              <div class="wb-meta">${fN(d.claims_funds.written_off)} cases</div>
+            </div>
+            <div class="wb blue">
+              <div class="wb-hdr"><div class="wb-lbl">🏠 Owner Absorbed</div><div class="wb-val">${f$(d.claims_funds.own_val)}</div></div>
+              <div class="wb-meta">${fN(d.claims_funds.owner)} cases</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">✅ Recovery Summary</div></div>
+          <div class="pb">
+            <div class="frow"><div class="fdot" style="background:var(--green)"></div><div class="fname">Guest recovery</div><div class="fval" style="color:var(--green)">${f$(d.claims_funds.rec_val)}</div></div>
+            <div class="frow"><div class="fdot" style="background:var(--red)"></div><div class="fname">GEL spend (total)</div><div class="fval" style="color:var(--red)">${f$(d.claims_funds.gel_val+d.feedback_funds.gel_val)}</div></div>
+            <div class="frow" style="border-bottom:none"><div class="fdot" style="background:var(--navy)"></div><div class="fname">Net GEL exposure</div><div class="fval" style="color:var(--navy);font-weight:700">${f$(Math.max(0,(d.claims_funds.gel_val+d.feedback_funds.gel_val)-d.claims_funds.rec_val))}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── SAVE NOTES ─────────────────────────────────────────────────────────────
+function saveNote(prefix,taId,month){
+  const ta=document.getElementById(taId);
+  if(!ta)return;
+  localStorage.setItem(prefix+'-summary-'+month,ta.value);
+  const ok=document.getElementById(prefix+'-ok');
+  if(ok){ok.style.display='flex';setTimeout(()=>ok.style.display='none',2200);}
+}
+</script>
+</body>
+</html>
